@@ -1,0 +1,17 @@
+{
+  "name": "Vita Date",
+  "author": {
+    "name": "Vitor",
+    "email": "v.m.moraes1997@gmail.com"
+  },
+  "defaultLocale": "pt-BR",
+  "private": true,
+  "location": {
+    "support": {
+      "ticket_sidebar": "assets/iframe.html",
+      "nav_bar": "assets/iframe.html"
+    }
+  },
+  "version": "1.0.0",
+  "frameworkVersion": "2.0"
+}
