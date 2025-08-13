@@ -15,198 +15,344 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <section class="flex p-10 gap-10 h-[95vh]">
-      <!-- Menu lateral -->
-      <div class="etapas_check w-[10%] flex border-r-1">
-        <div class="line_etapas bg-gray-200 w-1 relative">
-          <div
-            id="line-progress"
-            class="line_etapas_check h-[0px] bg-violet-500 w-1 z-2"
-          ></div>
-        </div>
+    <header
+      class="h-10 w-[70vw] m-auto border-1 p-10 rounded-t-[16px] bg-[#000000] flex items-center relative"
+    >
+      <nav
+        class="menu bg-gray-900 p-4 flex items-center justify-between text-white"
+      >
+        <img src="img/vitacon-13.png" alt="vitacon logo" class="h-8" />
         <div
-          class="etapas flex gap-8 flex-col justify-between w-full translate-x-[-14px]"
+          class="sub_menus flex gap-20 absolute translate-x-[-50%] translate-y-[50%] left-[50%] bottom-[50%]"
         >
-          <div class="etapas_list flex gap-6 items-center">
-            <i id="etapa-icon-1" class="bi bi-app text-[1.5rem] bg-white"></i>
-            <span>Etapa 1</span>
+          <div
+            id="menu-tickets"
+            class="menu-item flex flex-col text-center cursor-pointer text-[#cd1a1d]"
+          >
+            <i class="bi bi-plus-circle text-xl"></i>
+            <span>Novo Ticket</span>
           </div>
-          <div class="etapas_list flex gap-6 items-center">
-            <i id="etapa-icon-2" class="bi bi-app text-[1.5rem] bg-white"></i>
-            <span>Etapa 2</span>
-          </div>
-          <div class="etapas_list flex gap-6 items-center">
-            <i id="etapa-icon-3" class="bi bi-app text-[1.5rem] bg-white"></i>
-            <span>Etapa 3</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Área de conteúdo -->
-      <div class="all_etapas grid gap-10 w-[80%] grid-cols-2 p-6">
-        <!-- Etapa 1 - Tipo de Agendamento -->
-        <div data-etapa="1" class="col-span-1">
-          <h3 class="mb-4 font-bold">Selecione o tipo de agendamento</h3>
-          <select id="tipo-agendamento" class="w-full border rounded px-3 py-2">
-            <option value="" selected disabled>Escolha uma opção</option>
-            <option value="Visita">Visita</option>
-            <option value="Reunião">Reunião</option>
-            <option value="Inspeção">Inspeção</option>
-          </select>
-          <div class="mt-4">
-            <button
-              id="next1"
-              class="bg-violet-500 text-white px-4 py-2 rounded"
-            >
-              Prosseguir
-            </button>
+          <div
+            id="menu-dates"
+            class="menu-item flex flex-col text-center cursor-pointer"
+          >
+            <i class="bi bi-calendar text-xl"></i>
+            <span>Disponibilidade de datas</span>
           </div>
         </div>
-
-        <!-- Etapa 2 - Seleção de empreendimentos -->
-        <div data-etapa="2" class="col-span-1">
-          <h3 class="mb-4 font-bold">Selecione os empreendimentos</h3>
-
-          <!-- Botão do dropdown -->
-          <div class="relative">
-            <button
-              id="dropdownEmp"
-              type="button"
-              class="border px-3 py-2 w-full rounded flex justify-between items-center"
-            >
-              <span id="dropdownEmpText" class="text-gray-500"
-                >Escolha os empreendimentos</span
-              >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            <!-- Lista de opções -->
+      </nav>
+    </header>
+    <section
+      id="section-tickets"
+      class="flex h-[90vh] w-[70vw] m-auto border-1 rounded-b-[16px] shadow-xl flex-col relative border-[#ccc]"
+    >
+      <div class="flex px-10 h-full">
+        <!-- Menu lateral -->
+        <div
+          class="etapas_check w-[15%] flex border-r-1 p-5 shadow-2xl border-[#ccc]"
+        >
+          <div class="line_etapas bg-gray-200 w-1 relative">
             <div
-              id="lista-empresas"
-              class="absolute left-0 w-full mt-1 bg-white border rounded shadow hidden z-10"
-            >
-              <label class="flex items-center px-3 py-1 hover:bg-violet-100">
-                <input type="checkbox" value="Empresa 1" class="mr-2" /> Empresa
-                1
-              </label>
-              <label class="flex items-center px-3 py-1 hover:bg-violet-100">
-                <input type="checkbox" value="Empresa 2" class="mr-2" /> Empresa
-                2
-              </label>
-              <label class="flex items-center px-3 py-1 hover:bg-violet-100">
-                <input type="checkbox" value="Empresa 3" class="mr-2" /> Empresa
-                3
-              </label>
-              <label class="flex items-center px-3 py-1 hover:bg-violet-100">
-                <input type="checkbox" value="Empresa 4" class="mr-2" /> Empresa
-                4
-              </label>
-            </div>
+              id="line-progress"
+              class="line_etapas_check h-[0px] bg-[#cd1a1d] w-1 z-2"
+            ></div>
           </div>
-
-          <!-- Tags selecionadas -->
-          <div id="tags-container" class="flex flex-wrap gap-2 mt-3"></div>
-
-          <div class="mt-4">
-            <button id="back2" class="bg-gray-300 px-4 py-2 rounded">
-              Voltar
-            </button>
-            <button
-              id="next2"
-              class="bg-violet-500 text-white px-4 py-2 rounded"
-            >
-              Prosseguir
-            </button>
+          <div
+            class="etapas flex gap-8 flex-col justify-between w-full translate-x-[-14px]"
+          >
+            <div class="etapas_list flex gap-6 items-center">
+              <i
+                id="etapa-icon-1"
+                class="bi bi-calendar text-[1.5rem] bg-white"
+                data-color="#fff"
+              ></i>
+              <span>Etapa 1</span>
+            </div>
+            <div class="etapas_list flex gap-6 items-center">
+              <i
+                id="etapa-icon-2"
+                class="bi bi-building text-[1.5rem] bg-white"
+              ></i>
+              <span>Etapa 2</span>
+            </div>
+            <div class="etapas_list flex gap-6 items-center">
+              <i
+                id="etapa-icon-3"
+                class="bi bi-calendar2-week text-[1.5rem] bg-white"
+              ></i>
+              <span>Etapa 3</span>
+            </div>
+            <div class="etapas_list flex gap-6 items-center">
+              <i
+                id="etapa-icon-4"
+                class="bi bi-clock-history text-[1.5rem] bg-white"
+              ></i>
+              <span>Etapa 4</span>
+            </div>
           </div>
         </div>
-
-        <!-- Etapa 3 - Datas -->
-        <div data-etapa="3" class="col-span-1">
-          <h3 class="mb-4 font-bold">Selecione as datas</h3>
-          <div id="datas-container">
-            <input type="date" class="data-input border rounded p-2 w-60" />
-          </div>
-          <div class="mt-4">
-            <button id="back3" class="bg-gray-300 px-4 py-2 rounded">
-              Voltar
-            </button>
-            <button
-              id="next3"
-              class="bg-violet-500 text-white px-4 py-2 rounded"
+        <!-- Área de conteúdo -->
+        <div
+          class="all_etapas grid gap-10 w-[80%] grid-cols-1 p-6 justify-center items-center"
+        >
+          <!-- Etapa 1 - Tipo de Agendamento -->
+          <div data-etapa="1" class="flex flex-col gap-10 w-[40%] m-auto">
+            <h3 class="mb-4 font-bold text-[1.4rem]">
+              Selecione o tipo de agendamento
+            </h3>
+            <select
+              id="tipo-agendamento"
+              class="w-full border rounded px-3 py-2"
             >
-              Prosseguir
-            </button>
-          </div>
-        </div>
-
-        <!-- Etapa 4 - Horários -->
-        <div data-etapa="4" class="col-span-1">
-          <h3 class="mb-4 font-bold">Selecione os horários</h3>
-          <div class="flex flex-wrap gap-3">
-            <div class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer">
-              08:00
-            </div>
-            <div class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer">
-              09:00
-            </div>
-            <div class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer">
-              10:00
+              <option value="" selected disabled>Escolha uma opção</option>
+              <option value="Visita">Visita</option>
+              <option value="Reunião">Reunião</option>
+              <option value="Inspeção">Inspeção</option>
+            </select>
+            <div class="mt-4">
+              <button
+                id="next1"
+                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+              >
+                Prosseguir
+              </button>
             </div>
           </div>
-          <div class="mt-4">
-            <button id="back4" class="bg-gray-300 px-4 py-2 rounded">
-              Voltar
-            </button>
-            <button
-              id="enviar"
-              class="bg-green-500 text-white px-4 py-2 rounded"
-            >
-              Enviar
-            </button>
+          <!-- Etapa 2 - Seleção de empreendimentos -->
+          <div data-etapa="2" class="flex flex-col gap-10 w-[40%] m-auto">
+            <h3 class="mb-4 font-bold">Selecione os empreendimentos</h3>
+            <!-- Botão do dropdown -->
+            <div class="p-">
+              <div class="relative">
+                <button
+                  id="dropdownEmp"
+                  type="button"
+                  class="border px-3 py-2 w-full rounded flex justify-between items-center"
+                >
+                  <span id="dropdownEmpText" class="text-gray-500"
+                    >Escolha os empreendimentos</span
+                  >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <!-- Lista de opções -->
+                <div
+                  id="lista-empresas"
+                  class="absolute left-0 w-full mt-1 bg-white border rounded shadow hidden z-10"
+                >
+                  <label
+                    class="flex items-center px-3 py-1 hover:bg-violet-100"
+                  >
+                    <input type="checkbox" value="Empresa 1" class="mr-2" />
+                    Empresa 1
+                  </label>
+                  <label
+                    class="flex items-center px-3 py-1 hover:bg-violet-100"
+                  >
+                    <input type="checkbox" value="Empresa 2" class="mr-2" />
+                    Empresa 2
+                  </label>
+                  <label
+                    class="flex items-center px-3 py-1 hover:bg-violet-100"
+                  >
+                    <input type="checkbox" value="Empresa 3" class="mr-2" />
+                    Empresa 3
+                  </label>
+                  <label
+                    class="flex items-center px-3 py-1 hover:bg-violet-100"
+                  >
+                    <input type="checkbox" value="Empresa 4" class="mr-2" />
+                    Empresa 4
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- Tags selecionadas -->
+            <div id="tags-container" class="flex flex-wrap gap-2 mt-3"></div>
+            <div class="mt-4">
+              <button id="back2" class="bg-gray-300 px-4 py-2 rounded">
+                Voltar
+              </button>
+              <button
+                id="next2"
+                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+              >
+                Prosseguir
+              </button>
+            </div>
           </div>
-        </div>
-
-        <!-- Etapa Final -->
-        <div data-etapa="5" class="col-span-1">
-          <h3 class="font-bold text-lg">Resumo</h3>
-          <p><strong>Empreendimentos:</strong> <span id="resumo-emp"></span></p>
-          <p><strong>Datas:</strong> <span id="resumo-datas"></span></p>
-          <p><strong>Horários:</strong> <span id="resumo-horas"></span></p>
-          <div class="mt-4 flex gap-3">
-            <button id="back4" class="bg-gray-400 text-white px-4 py-2 rounded">
-              Voltar
-            </button>
-            <button
-              id="enviar"
-              class="bg-green-500 text-white px-4 py-2 rounded"
-            >
-              Enviar
-            </button>
+          <!-- Etapa 3 - Datas -->
+          <div data-etapa="3" class="flex flex-col gap-10 w-[42%] m-auto">
+            <h3 class="mb-4 font-bold text-[1.4rem]">Selecione as datas</h3>
+            <div id="datas-container" class="flex flex-wrap gap-3 w-full">
+              <input type="date" class="data-input border rounded p-2 w-60" />
+            </div>
+            <div class="mt-4">
+              <button id="back3" class="bg-gray-300 px-4 py-2 rounded">
+                Voltar
+              </button>
+              <button
+                id="next3"
+                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+              >
+                Prosseguir
+              </button>
+            </div>
+          </div>
+          <!-- Etapa 4 - Horários -->
+          <div data-etapa="4" class="flex flex-col gap-10 w-[40%] m-auto">
+            <h3 class="mb-4 font-bold">Selecione os horários</h3>
+            <div class="flex flex-wrap gap-3">
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                08:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                09:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                10:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                11:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                12:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                13:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                14:00
+              </div>
+              <div
+                class="hora-item bg-gray-200 rounded px-3 py-1 cursor-pointer"
+              >
+                15:00
+              </div>
+            </div>
+            <div class="mt-4">
+              <button id="back4" class="bg-gray-300 px-4 py-2 rounded">
+                Voltar
+              </button>
+              <button
+                id="prosseguir4"
+                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+              >
+                Prosseguir
+              </button>
+            </div>
+          </div>
+          <!-- Etapa Final -->
+          <div data-etapa="5" class="flex flex-col gap-10 w-[40%] m-auto">
+            <h3 class="font-bold text-lg">Resumo</h3>
+            <p><strong>Tipo de Agendamento:</strong> <span id="resumo-tipo"></span></p>
+            <p><strong>Empreendimentos:</strong> <span id="resumo-emp"></span></p>
+            <p><strong>Datas:</strong> <span id="resumo-datas"></span></p>
+            <p><strong>Horários:</strong> <span id="resumo-horas"></span></p>
+            <div class="mt-4 flex gap-3">
+              <button
+                id="back5"
+                class="bg-gray-400 text-white px-4 py-2 rounded"
+              >
+                Voltar
+              </button>
+              <button
+                id="enviar"
+                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+              >
+                Enviar
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </section>
-    <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
-    <script>
-      // Initialise Apps framework client. See also:
-      // https://developer.zendesk.com/apps/docs/developer-guide/getting_started
-      var client = ZAFClient.init();
-      client.invoke("resize", { width: "100%", height: "200px" });
-    </script>
-    <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
-    <script src="main.js"></script>
+    <!-- Segunda tela (datas) -->
+    <section
+      id="section-dates"
+      class="hidden flex h-[90vh] w-[70vw] m-auto border rounded-b-[16px] shadow-xl relative border-[#ccc]"
+    >
+      <nav class="w-[10%] h-full flex items-center justify-between">
+        <ul id="dates-menu" class="flex flex-col justify-evenly h-full">
+          <li
+            data-target="available"
+            class="tab-btn active w-full flex flex-col items-center justify-center text-center bg-[#04724d] hover:bg-[#04724d] hover:text-white transition duration-300 text-white h-full p-10 cursor-pointer gap-5"
+            data-inactive-bg="#ccc"
+            data-active-bg="#04724d"
+          >
+            <i class="bi bi-calendar text-[2rem]"></i>
+            <p>Datas Disponíveis</p>
+          </li>
+          <li
+            data-target="scheduled"
+            class="tab-btn w-full flex flex-col items-center justify-center text-center bg-[#ddd] hover:bg-[#b12028] hover:text-white transition duration-300 text-black h-full p-10 cursor-pointer gap-5"
+            data-inactive-bg="#ddd"
+            data-active-bg="#b12028"
+          >
+            <i class="bi bi-calendar-check text-[2rem]"></i>
+            <p>Datas Agendadas</p>
+          </li>
+          <li
+            data-target="completed"
+            class="tab-btn w-full flex flex-col items-center justify-center text-center bg-[#eee] hover:bg-[#000] hover:text-white transition duration-300 text-black h-full p-10 cursor-pointer gap-5"
+            data-inactive-bg="#eee"
+            data-active-bg="#000"
+          >
+            <i class="bi bi-calendar2-minus text-[2rem]"></i>
+            <p>Gerais</p>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Conteúdos -->
+      <div class="flex-1 p-6">
+        <div id="available" class="tab-content">
+          📅 Lista de datas disponíveis...
+        </div>
+        <div id="scheduled" class="tab-content hidden">
+          📆 Lista de datas agendadas...
+        </div>
+        <div id="completed" class="tab-content hidden">
+          ✅ Agendamentos concluídos...
+        </div>
+      </div>
+    </section>
   </body>
+
+  
+
+    
+  <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
+  <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
+  <script src="main.js"></script>
+  <script src="second_tab.js"></script>
+  <script src="init.js"></script>
+
+  
 </html>

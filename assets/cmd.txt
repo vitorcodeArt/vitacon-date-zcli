@@ -10,15 +10,3 @@ set PATH=%NODE_PATH%;%NODE_PATH%\node_modules\npm\bin;%PATH%
 
 :: Inicia o terminal com ambiente pronto
 cmd
-
-
-
-
-
-180px
-
-340
-
-480
-
-640

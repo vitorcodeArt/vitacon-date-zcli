@@ -1,7 +1,23 @@
 .line_etapas {
-    height: 100%;
-  }
-  .line_etapas_check {
-    transition: height 0.3s ease;
-  }
-  
+  height: 100%;
+}
+.line_etapas_check {
+  transition: height 0.3s ease;
+}
+
+.bi-app::before {
+  height: 22px;
+  width: 22px;
+  border-radius: 7px;
+  background: var(--before-bg, transparent);;
+}
+
+.tickets_create::after, .disponible_dates::after {
+  content: "";
+  width: auto;
+  height: 2px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #fff;
+  border-top: 7px solid var(--after-color, transparent);
+}
