@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 .line_etapas {
   height: 100%;
 }
@@ -21,3 +25,46 @@
   border-bottom: 7px solid #fff;
   border-top: 7px solid var(--after-color, transparent);
 }
+
+#calendar {
+      height: 85vh;
+      margin: 0 1.5rem;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0px 0px 20px rgba(0,0,0,0.4);
+      color: #fff;
+    }
+
+    .fc-toolbar-title {
+      font-size: 1.4rem !important;
+      font-weight: bold;
+    }
+
+    /* Estiliza eventos */
+    .fc-event {
+      border: none !important;
+      padding: 3px 6px;
+      font-size: 0.9rem;
+      border-radius: 6px !important;
+    }
+
+    .fc-theme-standard td, .fc-theme-standard th {
+      border-color: #dddddd17 !important;
+    }
+
+    .fc .fc-scroller-liquid-absolute {
+      scrollbar-width: small;
+      scrollbar-color: #cd1a1d #1e1e1e;
+    }
+
+    .fc .fc-scroller-liquid-absolute::-webkit-scrollbar {
+      /* width: 8px; */
+      border-radius: 16px;
+    }
+
+    /* .fc .fc-scroller {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    } */
+    
