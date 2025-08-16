@@ -94,18 +94,21 @@ document.querySelectorAll(".hora-item").forEach((el) => {
     const hora = el.textContent.trim();
     if (dados.horas.includes(hora)) {
       dados.horas = dados.horas.filter((h) => h !== hora);
-      el.classList.remove("bg-[#cd1a1d]", "text-white");
+      el.classList.remove("bg-[#cd1a1d]", "text-white", "data-selected");
       el.classList.add("bg-gray-200", "text-black");
     } else {
       dados.horas.push(hora);
       el.classList.remove("bg-gray-200", "text-black");
-      el.classList.add("bg-[#cd1a1d]", "text-white");
+      el.classList.add("bg-[#cd1a1d]", "text-white", "data-selected");
     }
   });
 });
 
-// Botões navegação
+// Botões "Prosseguir"
+
+// etapa 1
 document.getElementById("next1").onclick = () => {
+  // Verificação
   const tipo = document.getElementById("tipo-agendamento").value;
   if (!tipo) {
     alert("Selecione um tipo de agendamento.");
@@ -115,9 +118,28 @@ document.getElementById("next1").onclick = () => {
   mostrarEtapa(2);
 };
 
-document.getElementById("next2").onclick = () => mostrarEtapa(3);
+// etapa 2
+document.getElementById("next2").onclick = () => {
+   // Verificação
+  status_empresas_selecionadas = dropdownEmpText.innerText;
+  if (status_empresas_selecionadas == 'Escolha os empreendimentos') {
+    // document.querySelector('.pato').classList.remove('hidden')
+    alert('Escolha um empreendimento.');
+    return;
+  }
 
+  mostrarEtapa(3)
+};
+
+// etapa 3
 document.getElementById("next3").onclick = () => {
+   // Verificação
+  const data = document.querySelector(".data-input").value;
+  if (!data) {
+    alert('Seleciona uma data.')
+    return
+  }
+
   dados.datas = Array.from(document.querySelectorAll(".data-input"))
     .map((i) => i.value)
     .filter((v) => v)
@@ -127,6 +149,44 @@ document.getElementById("next3").onclick = () => {
     });
   mostrarEtapa(4);
 };
+
+// etapa 4
+document.getElementById("prosseguir4").onclick = () => {
+  // Verificação
+  let contador = 0;
+  const horas = document.querySelectorAll('.hora-item');
+  horas.forEach(hora => {
+    if (document.querySelector('.data-selected')) {
+      contador++;
+    }
+  });
+  if (contador == 0) {
+    alert('Selecione um horário.')
+    return
+  };
+
+  // Atualiza resumo antes de mostrar etapa 5
+  document.getElementById("resumo-tipo").textContent = dados.tipo || "Não informado";
+  document.getElementById("resumo-emp").textContent = dados.empresas.length ? dados.empresas.join(", ") : "Nenhum";
+  document.getElementById("resumo-datas").textContent = dados.datas.length ? dados.datas.join(", ") : "Nenhuma";
+  document.getElementById("resumo-horas").textContent = dados.horas.length ? dados.horas.join(", ") : "Nenhum";
+
+
+  
+  mostrarEtapa(5);
+};
+
+// Botão "Voltar" da etapa 5
+document.getElementById("back5").onclick = () => {
+  mostrarEtapa(4);
+};
+
+// Botão "Enviar" final
+document.getElementById("enviar").onclick = () => {
+  console.log("Enviando dados:", dados);
+  alert("Tickets criados com sucesso!");
+};
+
 
 document.getElementById("back2").onclick = () => mostrarEtapa(1);
 document.getElementById("back3").onclick = () => mostrarEtapa(2);
@@ -198,25 +258,3 @@ document.addEventListener("click", (e) => {
     listaEmpresas.classList.add("hidden");
   }
 });
-
-// Botão "Prosseguir" da etapa 4
-document.getElementById("prosseguir4").onclick = () => {
-  // Atualiza resumo antes de mostrar etapa 5
-  document.getElementById("resumo-tipo").textContent = dados.tipo || "Não informado";
-  document.getElementById("resumo-emp").textContent = dados.empresas.length ? dados.empresas.join(", ") : "Nenhum";
-  document.getElementById("resumo-datas").textContent = dados.datas.length ? dados.datas.join(", ") : "Nenhuma";
-  document.getElementById("resumo-horas").textContent = dados.horas.length ? dados.horas.join(", ") : "Nenhum";
-
-  mostrarEtapa(5);
-};
-
-// Botão "Voltar" da etapa 5
-document.getElementById("back5").onclick = () => {
-  mostrarEtapa(4);
-};
-
-// Botão "Enviar" final
-document.getElementById("enviar").onclick = () => {
-  console.log("Enviando dados:", dados);
-  alert("Tickets criados com sucesso!");
-};
