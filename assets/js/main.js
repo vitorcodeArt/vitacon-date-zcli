@@ -9,6 +9,9 @@ const iconApp = document.querySelectorAll(".bi-app");
 
 
 function mostrarTela(tela) {
+
+    let menu_etapas = document.getElementById("etapas");
+    let menu_tickets = document.getElementById("dates-menu-container");
   // Esconde todas as sections
   document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
   // Mostra a selecionada
@@ -16,19 +19,32 @@ function mostrarTela(tela) {
 
   // Remove destaque de todos os itens do menu
   document.querySelectorAll(".menu-item").forEach(item => {
-    item.classList.remove("text-[#cd1a1d]");
+    item.classList.remove("bg-[#bedbff]");
   });
 
   // Adiciona destaque no item clicado
   if (tela === "section-tickets") {
-    document.getElementById("menu-tickets").classList.add("text-[#cd1a1d]");
+    document.getElementById("menu-tickets").classList.add("bg-[#bedbff]");
+    menu_etapas.classList.remove("hidden");
+    menu_tickets.classList.add("hidden");
   } else {
-    document.getElementById("menu-dates").classList.add("text-[#cd1a1d]");
+    document.getElementById("menu-dates").classList.add("bg-[#bedbff]");
+    menu_etapas.classList.add("hidden");
+    menu_tickets.classList.remove("hidden");
   }
 }
 
 document.getElementById("menu-tickets").onclick = () => mostrarTela("section-tickets");
-document.getElementById("menu-dates").onclick = () => mostrarTela("section-dates");
+document.getElementById("menu-dates").onclick = () => {
+  mostrarTela("section-dates");
+  if (window.mainCalendar) {
+        window.mainCalendar.updateSize();
+        window.miniCalendar.updateSize();
+  } else {
+    console.warn("mainCalendar não está inicializado ainda");
+  }
+
+} 
 
 // Tela inicial
 mostrarTela("section-tickets");

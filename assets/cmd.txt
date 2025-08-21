@@ -1,9 +1,9 @@
 @echo off
 :: Caminho onde o Node está instalado via nvm
-set "NODE_PATH=C:\Users\BCR\Desktop\nvm-noinstall\v18.18.2"
+set "NODE_PATH=C:\Users\BCR\Desktop\nvm-noinstall\Projetos\v18.18.2"
 
 :: Caminho do repositório da app do Zendesk
-cd /d C:\Users\BCR\Desktop\nvm-noinstall\vitaDate
+cd /d C:\Users\BCR\Desktop\nvm-noinstall\Projetos\vitaDate
 
 :: Adiciona o Node e NPM ao PATH local
 set PATH=%NODE_PATH%;%NODE_PATH%\node_modules\npm\bin;%PATH%

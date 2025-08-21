@@ -1,171 +1,289 @@
-let eventos = ["Evento 1", "Evento 2", "Evento 3"];
-let start = [
-    "2025-08-15T10:00:00",
-    "2025-08-14T12:00:00",
-    "2025-08-13T11:00:00",
-];
-let grupos = ["grupo_1", "grupo_2", "grupo_3"];
-let classes = ["Visita", "Agendamento", "Recebimento"];
-
 document.addEventListener("DOMContentLoaded", function () {
-    var calendarEl = document.getElementById("calendar");
+  var calendarEl = document.getElementById("mainCalendar");
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        themeSystem: 'bootstrap5',
-        initialView: "dayGridMonth",
-        locale: "pt-br",
-        selectable: true,
-        editable: true,
-        droppable: true,
-        dayMaxEventRows: true,
-        allDaySlot: false,
-        slotDuration: "01:00:00",
-        expandRows: true,
-        eventMinHeight: 15,
-        slotMinTime: "08:00:00",
-        slotMaxTime: "20:00:00",
+  // cria o popup (inicialmente oculto)
+  const popup = document.createElement("div");
+  popup.className =
+    "absolute hidden bg-white shadow-lg rounded-lg p-3 text-sm border border-gray-300 z-50 pointer-events-none";
+  popup.style.minWidth = "200px";
+  document.body.appendChild(popup);
 
-        customButtons: {
-            filterClass: {
-                text: 'Filter Class',
-                click: function () {
-                    // Captura todas as classes únicas
-                    const allEvents = calendar.getEvents();
-                    const uniqueClasses = new Set();
+  window.mainCalendar = new FullCalendar.Calendar(calendarEl, {
+    // torne global
+    themeSystem: "bootstrap5",
+    initialView: "dayGridMonth",
+    locale: "pt-br",
+    selectable: true,
+    editable: true,
+    droppable: true,
+    dayMaxEventRows: true,
+    allDaySlot: false,
+    slotDuration: "01:00:00",
+    expandRows: true,
+    eventMinHeight: 30,
+    slotMinTime: "08:00:00",
+    slotMaxTime: "20:00:00",
 
-                    allEvents.forEach(event => {
-                        event.classNames.forEach(cn => uniqueClasses.add(cn));
-                    });
+    customButtons: {
+      filterClass: {
+        text: "Filtrar",
+        click: function () {
+          const allEvents = window.mainCalendar.getEvents();
 
-                    // Cria botões dinâmicos
-                    const groupButtons = document.getElementById('groupButtons');
-                    groupButtons.innerHTML = '';
+          // popula status
+          const statusSet = new Set();
+          const empreendimentoSet = new Set();
+          const tipoSet = new Set();
 
-                    // Botão para "Todos"
-                    createFilterButton('Todos', '');
+          allEvents.forEach((event) => {
+            if (event.extendedProps.status)
+              statusSet.add(event.extendedProps.status);
+            if (event.extendedProps.empreendimento)
+              empreendimentoSet.add(event.extendedProps.empreendimento);
+            if (event.extendedProps.tipo) tipoSet.add(event.extendedProps.tipo);
+          });
 
-                    // Botões para cada classe
-                    uniqueClasses.forEach(cls => {
-                        createFilterButton(cls, cls);
-                    });
+          fillDropdown("filterStatus", statusSet);
+          fillDropdown("filterEmpreendimento", empreendimentoSet);
+          fillDropdown("filterTipo", tipoSet);
 
-                    // Mostra modal
-                    document.getElementById('filterModal').style.display = 'block';
-                }
+          document.getElementById("filterModal").classList.remove("hidden");
+        },
+      },
+    },
+
+    headerToolbar: {
+      left: "prev,next today filterClass",
+      center: "title",
+      right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+    },
+
+    dateClick: function (info) {
+      let titulo = prompt("Digite o título do evento:");
+      if (titulo) {
+        window.mainCalendar.addEvent({
+          title: titulo,
+          start: info.date,
+          allDay: true,
+          backgroundColor: getRandomColor(),
+        });
+      }
+    },
+
+    eventClick: function (info) {
+      let ticketId = info.event.extendedProps.ticketId;
+      if (ticketId) {
+        let url = `https://con-bcrcx-fabio.zendesk.com/agent/tickets/${ticketId}`;
+        window.open(url, "_blank");
+      }
+    },
+
+    eventMouseEnter: function (info) {
+      // Se já existir um popup, mata a animação e remove
+      const existingPopup = document.querySelector("#event-popup");
+      if (existingPopup) {
+        gsap.killTweensOf(existingPopup); // mata animações antigas
+        existingPopup.remove();
+      }
+
+      // Cria o popup
+      const popup = document.createElement("div");
+      popup.id = "event-popup";
+      popup.className =
+        "fixed z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm pointer-events-none";
+      popup.style.opacity = 0;
+
+      popup.innerHTML = `
+    <p><strong>Título:</strong> ${info.event.title}</p>
+    <p><strong>ID:</strong> ${info.event.id || "N/A"}</p>
+    <p><strong>Status:</strong> ${
+      info.event.extendedProps.status || "Aberto"
+    }</p>
+    <p><strong>Tipo:</strong> ${info.event.extendedProps.tipo || "Padrão"}</p>
+    <p><strong>Empreendimento:</strong> ${
+      info.event.extendedProps.empreendimento || "N/A"
+    }</p>
+  `;
+
+      document.body.appendChild(popup);
+
+      // Anima entrada
+      gsap.fromTo(
+        popup,
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.2 }
+      );
+
+      // Atualiza posição conforme o mouse
+      const moveHandler = (e) => {
+        gsap.set(popup, { x: e.pageX + 15, y: e.pageY + 15 });
+      };
+
+      document.addEventListener("mousemove", moveHandler);
+
+      // Salva referência para poder remover depois
+      info.el._popup = popup;
+      info.el._moveHandler = moveHandler;
+    },
+
+    eventMouseLeave: function (info) {
+      const popup = info.el._popup;
+      if (popup) {
+        gsap.to(popup, {
+          opacity: 0,
+          scale: 0.9,
+          duration: 0.2,
+          onComplete: () => {
+            if (popup && popup.parentNode) {
+              popup.remove();
             }
-        },
+          },
+        });
+      }
 
-        headerToolbar: {
-            left: "prev,next today filterClass",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-        },
+      if (info.el._moveHandler) {
+        document.removeEventListener("mousemove", info.el._moveHandler);
+      }
+    },
+  });
 
-        dateClick: function (info) {
-            let titulo = prompt("Digite o título do evento:");
-            if (titulo) {
-                calendar.addEvent({
-                    title: titulo,
-                    start: info.date,
-                    allDay: true,
-                    backgroundColor: getRandomColor()
-                });
-            }
-        },
+  window.mainCalendar.render();
 
-        eventClick: function (info) {
-            if (confirm(`Deseja excluir o evento "${info.event.title}"?`)) {
-                info.event.remove();
-            }
-        },
+  // ================================
+  // 🔹 Busca tickets do Zendesk
+  // ================================
 
-        eventDrop: function (info) {
-            console.log(`Evento "${info.event.title}" movido para ${info.event.start}`);
-        },
+  const FIELDS_MAP = {
+    39804354708123: "tipo",
+    39880756544539: "empreendimento",
+    39880638747163: "horario",
+    39804409012763: "agendamento",
+    39880698235803: "status",
+  };
 
-        eventResize: function (info) {
-            console.log(`Evento "${info.event.title}" alterado para ${info.event.start} até ${info.event.end}`);
+  client
+    .request({
+      url: `/api/v2/search.json?query=type:ticket ticket_form_id:39804179516187`,
+      type: "GET",
+    })
+    .then(function (data) {
+      const tickets = data.results.map((ticket) => {
+        let custom = {};
+        for (let fieldId in FIELDS_MAP) {
+          const field = ticket.fields?.find((f) => f.id == fieldId);
+          custom[FIELDS_MAP[fieldId]] = field ? field.value : null;
         }
+        return {
+          id: ticket.id,
+          ...custom,
+        };
+      });
+
+      console.log(tickets)
+
+      tickets.forEach((ticket) => {
+        if (!ticket.agendamento) return;
+        let startDate = ticket.agendamento;
+        if (ticket.horario) startDate = `${startDate}T${ticket.horario}`;
+
+        window.mainCalendar.addEvent({
+          id: ticket.id,
+          title: `Ticket ${ticket.id}`,
+          start: startDate,
+          backgroundColor: getGroupColor(ticket.status),
+          classNames: [ticket.tipo, ticket.empreendimento],
+          extendedProps: {
+            ticketId: ticket.id,
+            status: ticket.status,
+            empreendimento: ticket.empreendimento,
+            tipo: ticket.tipo,
+          },
+        });
+      });
+    })
+    .catch(console.error);
+
+  // ================================
+  // 🔹 Funções utilitárias
+  // ================================
+  function fillDropdown(dropdownId, values) {
+    const dropdown = document.getElementById(dropdownId);
+    const optionsContainer = dropdown.querySelector(".options");
+    const selected = dropdown.querySelector(".selected");
+
+    optionsContainer.innerHTML = "";
+    const defaultOpt = document.createElement("div");
+    defaultOpt.textContent = "Todos";
+    defaultOpt.setAttribute("data-value", "");
+    defaultOpt.className = "p-2 cursor-pointer hover:bg-gray-100 transition";
+    optionsContainer.appendChild(defaultOpt);
+
+    values.forEach((val) => {
+      const opt = document.createElement("div");
+      opt.textContent = val;
+      opt.setAttribute("data-value", val);
+      opt.className = "p-2 cursor-pointer hover:bg-gray-100 transition";
+      optionsContainer.appendChild(opt);
     });
 
-    calendar.render();
-
-    // Adiciona eventos iniciais
-    for (let i = 0; i < eventos.length; i++) {
-        calendar.addEvent({
-            title: eventos[i],
-            start: start[i],
-            backgroundColor: getGroupColor(grupos[i]),
-            classNames: [grupos[i]]
-        });
-    }
-
-    // Função de cor por grupo
-    function getGroupColor(grupo) {
-        if (grupo === "grupo_1") return "#FF6B6B";
-        if (grupo === "grupo_2") return "#4ECDC4";
-        if (grupo === "grupo_3") return "#FFD93D";
-        return "#cccccc";
-    }
-
-    // Função para criar botões de filtro
-    function createFilterButton(label, filterClass) {
-        const btn = document.createElement('div');
-        btn.textContent = label;
-        btn.dataset.filter = filterClass;
-        btn.style.padding = "8px 12px";
-        btn.style.borderRadius = "6px";
-        if (filterClass === '') btn.style.background = "#e2e2e2ff";
-        if (filterClass === 'grupo_1') btn.style.background = "#FF6B6B";
-        if (filterClass === 'grupo_2') btn.style.background = "#4ECDC4";
-        if (filterClass === 'grupo_3') btn.style.background = "#FFD93D";
-        btn.style.cursor = "pointer";
-        btn.style.userSelect = "none";
-        btn.style.fontSize = "0.9rem";
-        btn.style.transition = "0.2s";
-
-        btn.addEventListener('mouseenter', () => {
-            if (filterClass === 'grupo_1' && !btn.classList.contains('active')) btn.style.background = "#fa5252ff";
-            if (filterClass === 'grupo_2' && !btn.classList.contains('active')) btn.style.background = "#25afa6ff";
-            if (filterClass === 'grupo_3' && !btn.classList.contains('active')) btn.style.background = "#b99918ff";
-        });
-        btn.addEventListener('mouseleave', () => {
-            if (filterClass === 'grupo_1' && !btn.classList.contains('active')) btn.style.background = "#FF6B6B";
-            if (filterClass === 'grupo_2' && !btn.classList.contains('active')) btn.style.background = "#4ECDC4";
-            if (filterClass === 'grupo_3' && !btn.classList.contains('active')) btn.style.background = "#FFD93D";
-        });
-
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('#groupButtons div').forEach(el => {
-                el.classList.remove('active');
-                console.log(el.classList);
-            });
-            btn.classList.add('active');
-            if (filterClass === '') btn.style.background = "#e2e2e2ff";
-            if (filterClass === 'grupo_1') btn.style.background = "#f54242ff";
-            if (filterClass === 'grupo_2') btn.style.background = "#24a098ff";
-            if (filterClass === 'grupo_3') btn.style.background = "#b99b23ff";
-
-            const classeDesejada = btn.dataset.filter;
-
-            calendar.getEvents().forEach(event => {
-                if (!classeDesejada || event.classNames.includes(classeDesejada)) {
-                    event.setProp('display', 'auto');
-                } else {
-                    event.setProp('display', 'none');
-                }
-            });
-        });
-
-        document.getElementById('groupButtons').appendChild(btn);
-    }
-
-    // Fechar modal
-    document.getElementById('closeFilter').addEventListener('click', function () {
-        document.getElementById('filterModal').style.display = 'none';
+    optionsContainer.querySelectorAll("div").forEach((opt) => {
+      opt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selected.textContent = opt.textContent;
+        dropdown.setAttribute("data-value", opt.getAttribute("data-value"));
+        optionsContainer.classList.add("hidden");
+      });
     });
 
-    function getRandomColor() {
-        return "#" + Math.floor(Math.random() * 16777215).toString(16);
+    if (!dropdown.hasAttribute("data-initialized")) {
+      dropdown.addEventListener("click", (e) => {
+        if (!e.target.closest(".options")) {
+          document
+            .querySelectorAll(".options")
+            .forEach((opt) => opt.classList.add("hidden"));
+          optionsContainer.classList.toggle("hidden");
+        }
+      });
+      dropdown.setAttribute("data-initialized", "true");
     }
+  }
+
+  function getGroupColor(status) {
+    if (status === "vita_agenda_status_agendado") return "#FF6B6B";
+    if (status === "vita_agenda_status_livre") return "#4ECDC4";
+  }
+
+  document.getElementById("applyFilter").addEventListener("click", function () {
+    const status =
+      document.getElementById("filterStatus").getAttribute("data-value") || "";
+    const empreendimento =
+      document
+        .getElementById("filterEmpreendimento")
+        .getAttribute("data-value") || "";
+    const tipo =
+      document.getElementById("filterTipo").getAttribute("data-value") || "";
+
+    window.mainCalendar.getEvents().forEach((event) => {
+      const matchStatus = !status || event.extendedProps.status === status;
+      const matchEmp =
+        !empreendimento ||
+        event.extendedProps.empreendimento === empreendimento;
+      const matchTipo = !tipo || event.extendedProps.tipo === tipo;
+
+      event.setProp(
+        "display",
+        matchStatus && matchEmp && matchTipo ? "auto" : "none"
+      );
+    });
+
+    document.getElementById("filterModal").classList.add("hidden");
+  });
+
+  document.getElementById("closeFilter").addEventListener("click", function () {
+    document.getElementById("filterModal").classList.add("hidden");
+  });
+
+  function getRandomColor() {
+    return "#" + Math.floor(Math.random() * 16777215).toString(16);
+  }
 });
