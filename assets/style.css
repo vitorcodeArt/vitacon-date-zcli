@@ -19,13 +19,6 @@
   background: var(--before-bg, transparent);
 }
 
-.fc .fc-button-primary {
-  background-color: #ffffff !important;
-  border-color: #b3d7ef !important;
-  color: #565656 !important;
-  border-radius: 22px;
-}
-
 .tickets_create::after,
 .disponible_dates::after {
   content: "";
@@ -37,22 +30,113 @@
   border-top: 7px solid var(--after-color, transparent);
 }
 
+#mainCalendar .fc-button-primary {
+  background-color: #ffffff !important;
+  border-color: #b3d7ef !important;
+  color: #565656 !important;
+  border-radius: 22px;
+}
+
 #mainCalendar {
   height: 100vh;
   background: var(--background-soft);
   border-radius: 10px;
   padding: 22px;
+  padding-left: 0;
   color: #565656;
+}
+
+#mainCalendar .fc-toolbar-title {
+  font-size: 1.4rem !important;
+  font-weight: bold;
+}
+
+#mainCalendar .fc-v-event .fc-event-title {
+  font-size: 0.6rem;
+}
+
+#mainCalendar .fc-list-event-dot {
+  width: 10px;
+}
+
+#mainCalendar .fc-scrollgrid-liquid {
+  border-radius: 22px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+#miniCalendar .fc-scrollgrid-liquid {
+  border: none;
+  overflow: hidden;
+  background-color: #ffffff00;
+}
+
+#miniCalendar .fc-button-primary {
+  background-color: var(--background-soft) !important;
+  border: none !important;
+  color: #565656 !important;
+  border-radius: 22px;
+  padding: 0.3rem;
+  font-size: 0.9rem;
+}
+
+#miniCalendar .fc-scroller-harness .fc-scroller {
+  display: flex;
+  justify-content: center;
+}
+
+#miniCalendar .fc .fc-daygrid-body {
+  display: flex;
+  justify-content: center;
+}
+
+#miniCalendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-top {
+  border-radius: 9px;
+  background-color: #2582ca !important;
+  border: none !important;
+  color: #ffffff !important;
+  padding: 0 1px;
+}
+#miniCalendar .fc-daygrid-day.fc-day-today {
+  background-color: transparent !important;
+}
+
+#miniCalendar .fc-toolbar-title {
+  font-size: 1rem !important;
+  font-weight: bold;
+}
+
+#miniCalendar .fc-daygrid-day-number {
+  font-size: 0.7rem;
+}
+
+#miniCalendar .fc-button-primary:not(:disabled).fc-button-active:focus,
+#miniCalendar .fc-button-primary:not(:disabled):active:focus,
+#miniCalendar .fc-button:focus,
+#miniCalendar .fc-button:active:focus,
+#miniCalendar .fc-button-primary:focus {
+  box-shadow: none !important;
+}
+
+#miniCalendar .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 0.5rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 #miniCalendar {
   width: 100%;
-  margin: 0 1.5rem;
+  margin: 0;
   background: var(--background-soft);
   border-radius: 10px;
-  padding: 15px;
+  padding: .5rem 1.5rem;
   color: #565656;
-  height: 400px; 
+  height: 353px;
+}
+
+#miniCalendar .fc-scroller-liquid-absolute {
+  overflow: hidden !important;
 }
 
 #miniCalendar .fc-daygrid-day-frame {
@@ -65,13 +149,127 @@
   text-transform: uppercase;
 }
 
-#miniCalendar td, #miniCalendar th {
-    border-color: #e8e8e800 !important;
+#miniCalendar td,
+#miniCalendar th {
+  border-color: #e8e8e800 !important;
 }
 
-.fc-toolbar-title {
-  font-size: 1.4rem !important;
+#rangeCalendar .fc-scrollgrid-liquid {
+  border: none;
+  overflow: hidden;
+  background-color: #ffffff00;
+}
+
+#rangeCalendar .fc-button-primary {
+  background-color: var(--background-soft) !important;
+  border: none !important;
+  color: #565656 !important;
+  border-radius: 22px;
+  padding: 0.3rem;
+  font-size: 0.9rem;
+}
+
+#rangeCalendar .fc-scroller-harness .fc-scroller {
+  display: flex;
+  justify-content: center;
+}
+
+#rangeCalendar .fc .fc-daygrid-body {
+  display: flex;
+  justify-content: center;
+}
+
+#rangeCalendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-top a {
+  background: #ec7979;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  padding: 3px 5px;
+  transform: translateX(2px);
+}
+
+#rangeCalendar .fc-daygrid-day.fc-day-today {
+  background-color: transparent !important;
+}
+
+#rangeCalendar .fc-daygrid-day-bg .fc-highlight {
+  z-index: 3;
+  border-radius: 10px;
+  background: #bbdff7 !important;
+  border: solid #496d8ca1 !important;
+  box-shadow: inset 10px -5px 15px #8db4eb;
+}
+
+#rangeCalendar .fc-daygrid-day-bg .fc-bg-event {
+  z-index: 2;
+  color: #fff !important;
+  border-radius: 8px !important;
+  background: #bbdff7 !important;
+  border: solid #496d8ca1 !important;
+  box-shadow: inset 10px -5px 15px #8db4eb;
+  opacity: 1 !important;
+}
+
+#rangeCalendar .fc-toolbar-title {
+  font-size: 1rem !important;
   font-weight: bold;
+}
+
+#rangeCalendar .fc-daygrid-day-number {
+  font-size: 0.7rem;
+  transform: translateX(2px);
+}
+
+#rangeCalendar .fc-button-primary:not(:disabled).fc-button-active:focus,
+#rangeCalendar .fc-button-primary:not(:disabled):active:focus,
+#rangeCalendar .fc-button:focus,
+#rangeCalendar .fc-button:active:focus,
+#rangeCalendar .fc-button-primary:focus {
+  box-shadow: none !important;
+}
+
+#rangeCalendar .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 0.5rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#rangeCalendar {
+  width: 100%;
+  margin: 0;
+  background: var(--background-soft);
+  border-radius: 10px;
+  padding: 0 1.5rem;
+  color: #565656;
+  height: 275px;
+}
+
+#rangeCalendar .fc-day-other .fc-daygrid-day-top {
+  z-index: 5;
+}
+
+#rangeCalendar .fc-scroller-liquid-absolute {
+  overflow: hidden !important;
+}
+
+#rangeCalendar .fc-daygrid-day-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#rangeCalendar .fc-col-header-cell-cushion {
+  text-transform: uppercase;
+}
+
+#rangeCalendar td,
+#rangeCalendar th {
+  border-color: #e8e8e800 !important;
+}
+
+.fc fc-media-screen fc-direction-ltr fc-theme-standard {
+  background: var(--background-soft) !important;
 }
 
 /* Estiliza eventos */
@@ -146,20 +344,4 @@
   border-right: 7px solid transparent;
   border-bottom: 7px solid #fff;
   border-top: 7px solid var(--after-color, transparent);
-}
-
-#mainCalendar .fc-scrollgrid-liquid {
-  border-radius: 22px;
-  overflow: hidden;
-  background-color: #fff;
-}
-
-#miniCalendar .fc-scrollgrid-liquid {
-  border: none;
-  overflow: hidden;
-  background-color: #ffffff00;
-}
-
-.fc fc-media-screen fc-direction-ltr fc-theme-standard {
-  background: var(--background-soft) !important;
 }

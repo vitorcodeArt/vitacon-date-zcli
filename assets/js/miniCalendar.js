@@ -27,9 +27,12 @@ document.addEventListener("DOMContentLoaded", function () {
     selectable: true,
     locale: "pt-br",
     headerToolbar: {
-      left: "prev,next",
-      center: "title",
-      right: ""
+      left: "title",
+      right: "next,prev",
+    },
+      buttonIcons: {
+      prev: 'bi bi-arrow-down-short',  // Bootstrap icon para "anterior"
+      next: 'bi bi-arrow-up-short', // Bootstrap icon para "próximo"
     },
     dayHeaderFormat: {
         weekday: 'short' // já retorna abreviação curta (Sun, Mon, etc.)

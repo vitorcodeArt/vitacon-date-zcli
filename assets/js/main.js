@@ -1,3 +1,5 @@
+import { validarECriarTickets } from "./ticketsCreate.js";
+
 let etapaAtual = 1;
 let dados = { tipo: "", empresas: [], datas: [], horas: [] };
 
@@ -41,8 +43,9 @@ document.getElementById("menu-dates").onclick = () => {
         window.mainCalendar.updateSize();
         window.miniCalendar.updateSize();
   } else {
-    console.warn("mainCalendar não está inicializado ainda");
+    console.warn("rangeCalendar não está inicializado ainda");
   }
+  
 
 } 
 
@@ -88,21 +91,6 @@ document.querySelectorAll(".empresa-item").forEach((el) => {
   });
 });
 
-// Datas dinâmicas
-document.getElementById("datas-container").addEventListener("change", (e) => {
-  if (e.target.classList.contains("data-input")) {
-    const filledInputs = document.querySelectorAll(".data-input").length;
-    if (
-      e.target.value &&
-      e.target === document.querySelectorAll(".data-input")[filledInputs - 1]
-    ) {
-      const newInput = document.createElement("input");
-      newInput.type = "date";
-      newInput.className = "data-input border rounded p-2 w-60";
-      e.target.parentNode.appendChild(newInput);
-    }
-  }
-});
 
 // Seleção horários (multi)
 document.querySelectorAll(".hora-item").forEach((el) => {
@@ -125,7 +113,7 @@ document.querySelectorAll(".hora-item").forEach((el) => {
 // etapa 1
 document.getElementById("next1").onclick = () => {
   // Verificação
-  const tipo = document.getElementById("tipo-agendamento").value;
+  const tipo = document.getElementById("field-39804354708123").value;
   if (!tipo) {
     alert("Selecione um tipo de agendamento.");
     return;
@@ -137,7 +125,7 @@ document.getElementById("next1").onclick = () => {
 // etapa 2
 document.getElementById("next2").onclick = () => {
    // Verificação
-  status_empresas_selecionadas = dropdownEmpText.innerText;
+  let status_empresas_selecionadas = dropdownEmpText.innerText;
   if (status_empresas_selecionadas == 'Escolha os empreendimentos') {
     // document.querySelector('.pato').classList.remove('hidden')
     alert('Escolha um empreendimento.');
@@ -145,24 +133,50 @@ document.getElementById("next2").onclick = () => {
   }
 
   mostrarEtapa(3)
+  if (window.rangeCalendar) {
+        window.rangeCalendar.updateSize();
+  } else {
+    console.warn("rangeCalendar não está inicializado ainda");
+  }
 };
 
 // etapa 3
 document.getElementById("next3").onclick = () => {
-   // Verificação
-  const data = document.querySelector(".data-input").value;
-  if (!data) {
-    alert('Seleciona uma data.')
-    return
-  }
+  //  Verificação
+   const activeDates = selectedDates.filter(
+      d => !removedDates.some(rd => rd.getTime() === d.getTime())
+    );
 
-  dados.datas = Array.from(document.querySelectorAll(".data-input"))
-    .map((i) => i.value)
-    .filter((v) => v)
-    .map((v) => {
-      let [ano, mes, dia] = v.split("-");
-      return `${dia}/${mes}/${ano}`;
-    });
+    // converter para formato YYYY-MM-DD
+    const formattedActive = activeDates.map(d => 
+      d.toISOString().split("T")[0]
+    );
+
+    const formattedRemoved = removedDates.map(d =>
+      d.toISOString().split("T")[0]
+    );
+
+    console.log("Datas ativas:", formattedActive);
+    console.log("Datas removidas:", formattedRemoved);
+
+  if (formattedActive.length == 0) {
+    console.log('Selecione uma data.')
+    return
+  } 
+  // const data = document.querySelector(".data-input").value;
+  // if (!data) {
+  //   alert('Seleciona uma data.')
+  //   return
+  // }
+
+  // dados.datas = Array.from(document.querySelectorAll(".data-input"))
+  //   .map((i) => i.value)
+  //   .filter((v) => v)
+  //   .map((v) => {
+  //     let [ano, mes, dia] = v.split("-");
+  //     return `${dia}/${mes}/${ano}`;
+  //   });
+  dados.datas = formattedActive
   mostrarEtapa(4);
 };
 
@@ -197,12 +211,6 @@ document.getElementById("back5").onclick = () => {
   mostrarEtapa(4);
 };
 
-// Botão "Enviar" final
-document.getElementById("enviar").onclick = () => {
-  console.log("Enviando dados:", dados);
-  alert("Tickets criados com sucesso!");
-};
-
 
 document.getElementById("back2").onclick = () => mostrarEtapa(1);
 document.getElementById("back3").onclick = () => mostrarEtapa(2);
@@ -210,6 +218,7 @@ document.getElementById("back4").onclick = () => mostrarEtapa(3);
 
 document.getElementById("enviar").onclick = () => {
   console.log("Enviando dados:", dados);
+  validarECriarTickets(dados)
   alert("Enviado com sucesso!");
 };
 
