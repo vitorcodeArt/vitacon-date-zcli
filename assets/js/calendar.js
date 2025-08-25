@@ -1,17 +1,11 @@
+import { fetchTickets, getFields, VALUE_LABEL_MAP } from "./ticketsService.js";
+
 document.addEventListener("DOMContentLoaded", function () {
   var calendarEl = document.getElementById("mainCalendar");
 
-  // cria o popup (inicialmente oculto)
-  const popup = document.createElement("div");
-  popup.className =
-    "absolute hidden bg-white shadow-lg rounded-lg p-3 text-sm border border-gray-300 z-50 pointer-events-none";
-  popup.style.minWidth = "200px";
-  document.body.appendChild(popup);
-
   window.mainCalendar = new FullCalendar.Calendar(calendarEl, {
-    // torne global
     themeSystem: "bootstrap5",
-    initialView: "dayGridMonth",
+    initialView: "timeGridWeek",
     locale: "pt-br",
     selectable: true,
     editable: true,
@@ -30,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
         click: function () {
           const allEvents = window.mainCalendar.getEvents();
 
-          // popula status
           const statusSet = new Set();
           const empreendimentoSet = new Set();
           const tipoSet = new Set();
@@ -43,9 +36,26 @@ document.addEventListener("DOMContentLoaded", function () {
             if (event.extendedProps.tipo) tipoSet.add(event.extendedProps.tipo);
           });
 
-          fillDropdown("filterStatus", statusSet);
-          fillDropdown("filterEmpreendimento", empreendimentoSet);
-          fillDropdown("filterTipo", tipoSet);
+          const statusArr = Array.from(statusSet);
+          const empreendimentoArr = Array.from(empreendimentoSet);
+          const tipoArr = Array.from(tipoSet);
+
+          fillDropdown(
+            "filterStatus",
+            statusArr.map((val) => ({
+              id: val,
+              title: VALUE_LABEL_MAP[val] || val,
+            }))
+          );
+
+          fillDropdown("filterEmpreendimento", empreendimentoArr);
+          fillDropdown(
+            "filterTipo",
+            tipoArr.map((val) => ({
+              id: val,
+              title: VALUE_LABEL_MAP[val] || val,
+            }))
+          );
 
           document.getElementById("filterModal").classList.remove("hidden");
         },
@@ -53,20 +63,29 @@ document.addEventListener("DOMContentLoaded", function () {
     },
 
     headerToolbar: {
-      left: "prev,next today filterClass",
+      left: "",
       center: "title",
-      right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+      right: "prev,next filterClass timeGridWeek,listWeek",
     },
 
-    dateClick: function (info) {
-      let titulo = prompt("Digite o título do evento:");
-      if (titulo) {
-        window.mainCalendar.addEvent({
-          title: titulo,
-          start: info.date,
-          allDay: true,
-          backgroundColor: getRandomColor(),
-        });
+    titleFormat: {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+
+    // 🔹 Eventos filtrados por semana
+    events: async function (info, successCallback, failureCallback) {
+      try {
+        // info.start e info.end já vêm no formato Date
+        const startOfWeek = info.start.toISOString().slice(0, 10);
+        const endOfWeek = info.end.toISOString().slice(0, 10);
+
+        const tickets = await fetchTickets(startOfWeek, endOfWeek);
+
+        successCallback(tickets);
+      } catch (err) {
+        failureCallback(err);
       }
     },
 
@@ -78,50 +97,56 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     },
 
+    eventsSet: function (events) {
+      console.log("Calendário atualizado. Total de eventos:", events.length);
+    },
+
     eventMouseEnter: function (info) {
-      // Se já existir um popup, mata a animação e remove
       const existingPopup = document.querySelector("#event-popup");
       if (existingPopup) {
-        gsap.killTweensOf(existingPopup); // mata animações antigas
+        gsap.killTweensOf(existingPopup);
         existingPopup.remove();
       }
 
-      // Cria o popup
       const popup = document.createElement("div");
       popup.id = "event-popup";
       popup.className =
         "fixed z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm pointer-events-none";
       popup.style.opacity = 0;
 
+      const statusLabel =
+        VALUE_LABEL_MAP[info.event.extendedProps.status] ||
+        info.event.extendedProps.status ||
+        "Aberto";
+      const tipoLabel =
+        VALUE_LABEL_MAP[info.event.extendedProps.tipo] ||
+        info.event.extendedProps.tipo ||
+        "Padrão";
+
       popup.innerHTML = `
-    <p><strong>Título:</strong> ${info.event.title}</p>
-    <p><strong>ID:</strong> ${info.event.id || "N/A"}</p>
-    <p><strong>Status:</strong> ${
-      info.event.extendedProps.status || "Aberto"
-    }</p>
-    <p><strong>Tipo:</strong> ${info.event.extendedProps.tipo || "Padrão"}</p>
-    <p><strong>Empreendimento:</strong> ${
-      info.event.extendedProps.empreendimento || "N/A"
-    }</p>
-  `;
+        <p><strong>Título:</strong> ${info.event.title}</p>
+        <p><strong>ID:</strong> ${info.event.id || "N/A"}</p>
+        <p><strong>Status:</strong> ${statusLabel}</p>
+        <p><strong>Tipo:</strong> ${tipoLabel}</p>
+        <p><strong>Empreendimento:</strong> ${
+          info.event.extendedProps.empreendimento || "N/A"
+        }</p>
+      `;
 
       document.body.appendChild(popup);
 
-      // Anima entrada
       gsap.fromTo(
         popup,
         { opacity: 0, scale: 0.9 },
         { opacity: 1, scale: 1, duration: 0.2 }
       );
 
-      // Atualiza posição conforme o mouse
       const moveHandler = (e) => {
         gsap.set(popup, { x: e.pageX + 15, y: e.pageY + 15 });
       };
 
       document.addEventListener("mousemove", moveHandler);
 
-      // Salva referência para poder remover depois
       info.el._popup = popup;
       info.el._moveHandler = moveHandler;
     },
@@ -149,63 +174,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.mainCalendar.render();
 
-  // ================================
-  // 🔹 Busca tickets do Zendesk
-  // ================================
-
-  const FIELDS_MAP = {
-    39804354708123: "tipo",
-    39880756544539: "empreendimento",
-    39880638747163: "horario",
-    39804409012763: "agendamento",
-    39880698235803: "status",
-  };
-
-  client
-    .request({
-      url: `/api/v2/search.json?query=type:ticket ticket_form_id:39804179516187`,
-      type: "GET",
-    })
-    .then(function (data) {
-      const tickets = data.results.map((ticket) => {
-        let custom = {};
-        for (let fieldId in FIELDS_MAP) {
-          const field = ticket.fields?.find((f) => f.id == fieldId);
-          custom[FIELDS_MAP[fieldId]] = field ? field.value : null;
-        }
-        return {
-          id: ticket.id,
-          ...custom,
-        };
-      });
-
-      console.log(tickets)
-
-      tickets.forEach((ticket) => {
-        if (!ticket.agendamento) return;
-        let startDate = ticket.agendamento;
-        if (ticket.horario) startDate = `${startDate}T${ticket.horario}`;
-
-        window.mainCalendar.addEvent({
-          id: ticket.id,
-          title: `Ticket ${ticket.id}`,
-          start: startDate,
-          backgroundColor: getGroupColor(ticket.status),
-          classNames: [ticket.tipo, ticket.empreendimento],
-          extendedProps: {
-            ticketId: ticket.id,
-            status: ticket.status,
-            empreendimento: ticket.empreendimento,
-            tipo: ticket.tipo,
-          },
-        });
-      });
-    })
-    .catch(console.error);
+  //  Quando precisar atualizar os eventos (ex: ao salvar um ticket):
 
   // ================================
   // 🔹 Funções utilitárias
   // ================================
+
   function fillDropdown(dropdownId, values) {
     const dropdown = document.getElementById(dropdownId);
     const optionsContainer = dropdown.querySelector(".options");
@@ -220,8 +194,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     values.forEach((val) => {
       const opt = document.createElement("div");
-      opt.textContent = val;
-      opt.setAttribute("data-value", val);
+
+      // se for objeto, pega o title; senão usa val direto
+      const label = val?.title || val;
+      const value = val?.id || val;
+
+      opt.textContent = label;
+      opt.setAttribute("data-value", value);
       opt.className = "p-2 cursor-pointer hover:bg-gray-100 transition";
       optionsContainer.appendChild(opt);
     });
@@ -248,11 +227,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function getGroupColor(status) {
-    if (status === "vita_agenda_status_agendado") return "#FF6B6B";
-    if (status === "vita_agenda_status_livre") return "#4ECDC4";
-  }
+  // Inicializa dropdowns com os campos da API
+  async function initFilters() {
+    try {
+      await getFields();
 
+      // // Preenche os filtros com base nos ticket_fields
+      // fillDropdown("filterStatus", fields);
+      // fillDropdown("filterEmpreendimento", fields);
+      // fillDropdown("filterTipo", fields);
+    } catch (err) {
+      console.error("Erro ao inicializar filtros:", err);
+    }
+  }
+  initFilters();
+
+  // Apply Filter
   document.getElementById("applyFilter").addEventListener("click", function () {
     const status =
       document.getElementById("filterStatus").getAttribute("data-value") || "";
@@ -279,6 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("filterModal").classList.add("hidden");
   });
 
+  // Fecha modal
   document.getElementById("closeFilter").addEventListener("click", function () {
     document.getElementById("filterModal").classList.add("hidden");
   });
@@ -287,3 +278,8 @@ document.addEventListener("DOMContentLoaded", function () {
     return "#" + Math.floor(Math.random() * 16777215).toString(16);
   }
 });
+
+document.getElementById("refreshBtn").onclick = () => {
+  window.mainCalendar.refetchEvents();
+  console.log("Eventos atualizados");
+};
