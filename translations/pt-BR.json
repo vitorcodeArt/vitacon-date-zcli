@@ -1,0 +1,8 @@
+{
+  "app": {
+    "name": "Vita Date",
+    "short_description": "Aplicativo de criação de ticket em massa.",
+    "long_description": "O aplicativo tem como objetivo utilizar os tickets para marcar tipos de reuniões, baseados em data, horario e empreendimento.",
+    "installation_instructions": "..."
+  }
+}

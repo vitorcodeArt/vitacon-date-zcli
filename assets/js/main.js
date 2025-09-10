@@ -1,4 +1,4 @@
-import { validarECriarTickets } from "./ticketsCreate.js";
+import { validarECriarDisponibilidades } from "./ticketsCreate.js";
 
 let etapaAtual = 1;
 let dados = { tipo: "", empresas: [], datas: [], horas: [] };
@@ -9,45 +9,44 @@ const tagsContainer = document.getElementById("tags-container");
 const dropdownEmpText = document.getElementById("dropdownEmpText");
 const iconApp = document.querySelectorAll(".bi-app");
 
-
 function mostrarTela(tela) {
-
-    let menu_etapas = document.getElementById("etapas");
-    let menu_tickets = document.getElementById("dates-menu-container");
+  let menu_etapas = document.getElementById("etapas");
+  let menu_tickets = document.getElementById("dates-menu-container");
   // Esconde todas as sections
-  document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
+  document
+    .querySelectorAll("section")
+    .forEach((sec) => sec.classList.add("hidden"));
   // Mostra a selecionada
   document.getElementById(tela).classList.remove("hidden");
 
   // Remove destaque de todos os itens do menu
-  document.querySelectorAll(".menu-item").forEach(item => {
-    item.classList.remove("bg-[#bedbff]");
+  document.querySelectorAll(".menu-item").forEach((item) => {
+    item.classList.remove("bg-[#f29d42]");
   });
 
   // Adiciona destaque no item clicado
   if (tela === "section-tickets") {
-    document.getElementById("menu-tickets").classList.add("bg-[#bedbff]");
+    document.getElementById("menu-tickets").classList.add("bg-[#f29d42]");
     menu_etapas.classList.remove("hidden");
     menu_tickets.classList.add("hidden");
   } else {
-    document.getElementById("menu-dates").classList.add("bg-[#bedbff]");
+    document.getElementById("menu-dates").classList.add("bg-[#f29d42]");
     menu_etapas.classList.add("hidden");
     menu_tickets.classList.remove("hidden");
   }
 }
 
-document.getElementById("menu-tickets").onclick = () => mostrarTela("section-tickets");
+document.getElementById("menu-tickets").onclick = () =>
+  mostrarTela("section-tickets");
 document.getElementById("menu-dates").onclick = () => {
   mostrarTela("section-dates");
   if (window.mainCalendar) {
-        window.mainCalendar.updateSize();
-        window.miniCalendar.updateSize();
+    window.mainCalendar.updateSize();
+    window.miniCalendar.updateSize();
   } else {
     console.warn("rangeCalendar não está inicializado ainda");
   }
-  
-
-} 
+};
 
 // Tela inicial
 mostrarTela("section-tickets");
@@ -63,18 +62,16 @@ function mostrarEtapa(n) {
   etapaAtual = n;
 
   // Progresso visual
-  document.querySelectorAll('[id^="etapa-icon-"]').forEach((icon) => icon.classList.remove("text-[#cd1a1d]"));
+  document
+    .querySelectorAll('[id^="etapa-icon-"]')
+    .forEach((icon) => icon.classList.remove("text-[#f29d42]"));
   const etapaIcon = document.getElementById(`etapa-icon-${n}`);
-  if (etapaIcon) etapaIcon.classList.add("text-[#cd1a1d]");
-  
+  if (etapaIcon) etapaIcon.classList.add("text-[#f29d42]");
 
   // Linha lateral
   const heights = { 1: "0px", 2: "33%", 3: "66%", 4: "100%" };
   const lineProgress = document.getElementById("line-progress");
   if (lineProgress) lineProgress.style.height = heights[n];
-
-  
-
 }
 
 // Seleção empresas (multi)
@@ -91,19 +88,18 @@ document.querySelectorAll(".empresa-item").forEach((el) => {
   });
 });
 
-
 // Seleção horários (multi)
 document.querySelectorAll(".hora-item").forEach((el) => {
   el.addEventListener("click", () => {
     const hora = el.textContent.trim();
     if (dados.horas.includes(hora)) {
       dados.horas = dados.horas.filter((h) => h !== hora);
-      el.classList.remove("bg-[#cd1a1d]", "text-white", "data-selected");
+      el.classList.remove("bg-[#f29d42]", "text-white", "data-selected");
       el.classList.add("bg-gray-200", "text-black");
     } else {
       dados.horas.push(hora);
       el.classList.remove("bg-gray-200", "text-black");
-      el.classList.add("bg-[#cd1a1d]", "text-white", "data-selected");
+      el.classList.add("bg-[#f29d42]", "text-white", "data-selected");
     }
   });
 });
@@ -113,9 +109,9 @@ document.querySelectorAll(".hora-item").forEach((el) => {
 // etapa 1
 document.getElementById("next1").onclick = () => {
   // Verificação
-  const tipo = document.getElementById("field-39804354708123").value;
+  const tipo = document.getElementById("field-34533892299671").value;
   if (!tipo) {
-    alert("Selecione um tipo de agendamento.");
+    swal("Erro!", "Selecione um tipo de agendamento.", "error");
     return;
   }
   dados.tipo = tipo;
@@ -124,17 +120,19 @@ document.getElementById("next1").onclick = () => {
 
 // etapa 2
 document.getElementById("next2").onclick = () => {
-   // Verificação
-  let status_empresas_selecionadas = dropdownEmpText.innerText;
-  if (status_empresas_selecionadas == 'Escolha os empreendimentos') {
-    // document.querySelector('.pato').classList.remove('hidden')
-    alert('Escolha um empreendimento.');
-    return;
-  }
+  // Verificação
+  // let status_empresas_selecionadas = dropdownEmpText.innerText;
+  // if (status_empresas_selecionadas == 'Escolha os empreendimentos') {
 
-  mostrarEtapa(3)
+  // console.log(status_empresas_selecionadas)
+  // document.querySelector('.pato').classList.remove('hidden')
+  // alert('Escolha um empreendimento.');
+  // return;
+  // }
+
+  mostrarEtapa(3);
   if (window.rangeCalendar) {
-        window.rangeCalendar.updateSize();
+    window.rangeCalendar.updateSize();
   } else {
     console.warn("rangeCalendar não está inicializado ainda");
   }
@@ -143,26 +141,24 @@ document.getElementById("next2").onclick = () => {
 // etapa 3
 document.getElementById("next3").onclick = () => {
   //  Verificação
-   const activeDates = selectedDates.filter(
-      d => !removedDates.some(rd => rd.getTime() === d.getTime())
-    );
+  const activeDates = selectedDates.filter(
+    (d) => !removedDates.some((rd) => rd.getTime() === d.getTime())
+  );
 
-    // converter para formato YYYY-MM-DD
-    const formattedActive = activeDates.map(d => 
-      d.toISOString().split("T")[0]
-    );
+  // converter para formato YYYY-MM-DD
+  const formattedActive = activeDates.map((d) => d.toISOString().split("T")[0]);
 
-    const formattedRemoved = removedDates.map(d =>
-      d.toISOString().split("T")[0]
-    );
+  const formattedRemoved = removedDates.map(
+    (d) => d.toISOString().split("T")[0]
+  );
 
-    console.log("Datas ativas:", formattedActive);
-    console.log("Datas removidas:", formattedRemoved);
+  console.log("Datas ativas:", formattedActive);
+  console.log("Datas removidas:", formattedRemoved);
 
   if (formattedActive.length == 0) {
-    console.log('Selecione uma data.')
-    return
-  } 
+    console.log("Selecione uma data.");
+    return;
+  }
   // const data = document.querySelector(".data-input").value;
   // if (!data) {
   //   alert('Seleciona uma data.')
@@ -176,7 +172,7 @@ document.getElementById("next3").onclick = () => {
   //     let [ano, mes, dia] = v.split("-");
   //     return `${dia}/${mes}/${ano}`;
   //   });
-  dados.datas = formattedActive
+  dados.datas = formattedActive;
   mostrarEtapa(4);
 };
 
@@ -184,25 +180,30 @@ document.getElementById("next3").onclick = () => {
 document.getElementById("prosseguir4").onclick = () => {
   // Verificação
   let contador = 0;
-  const horas = document.querySelectorAll('.hora-item');
-  horas.forEach(hora => {
-    if (document.querySelector('.data-selected')) {
+  const horas = document.querySelectorAll(".hora-item");
+  horas.forEach((hora) => {
+    if (document.querySelector(".data-selected")) {
       contador++;
     }
   });
   if (contador == 0) {
-    alert('Selecione um horário.')
-    return
-  };
+    swal("Erro!", "Selecione um horário.", "error");
+    return;
+  }
 
   // Atualiza resumo antes de mostrar etapa 5
-  document.getElementById("resumo-tipo").textContent = dados.tipo || "Não informado";
-  document.getElementById("resumo-emp").textContent = dados.empresas.length ? dados.empresas.join(", ") : "Nenhum";
-  document.getElementById("resumo-datas").textContent = dados.datas.length ? dados.datas.join(", ") : "Nenhuma";
-  document.getElementById("resumo-horas").textContent = dados.horas.length ? dados.horas.join(", ") : "Nenhum";
+  document.getElementById("resumo-tipo").textContent =
+    dados.tipo || "Não informado";
+  document.getElementById("resumo-emp").textContent = dados.empresas.length
+    ? dados.empresas.join(", ")
+    : "Nenhum";
+  document.getElementById("resumo-datas").textContent = dados.datas.length
+    ? dados.datas.join(", ")
+    : "Nenhuma";
+  document.getElementById("resumo-horas").textContent = dados.horas.length
+    ? dados.horas.join(", ")
+    : "Nenhum";
 
-
-  
   mostrarEtapa(5);
 };
 
@@ -211,15 +212,14 @@ document.getElementById("back5").onclick = () => {
   mostrarEtapa(4);
 };
 
-
 document.getElementById("back2").onclick = () => mostrarEtapa(1);
 document.getElementById("back3").onclick = () => mostrarEtapa(2);
 document.getElementById("back4").onclick = () => mostrarEtapa(3);
 
 document.getElementById("enviar").onclick = () => {
   console.log("Enviando dados:", dados);
-  validarECriarTickets(dados)
-  alert("Enviado com sucesso!");
+  validarECriarDisponibilidades(dados);
+  swal("", "Deu tudo certo!", "success");
 };
 
 // Inicializar
@@ -247,35 +247,85 @@ listaEmpresas.querySelectorAll("input[type='checkbox']").forEach((cb) => {
   });
 });
 
+async function carregarEmpreendimentos() {
+  try {
+    const data = await client.request({
+      url: `/api/v2/ticket_fields/22242038869783`,
+      type: "GET",
+    });
+
+    console.log("Campo carregado:", data);
+
+    const opcoes = data.ticket_field.custom_field_options || [];
+    const listaEmpresas = document.getElementById("lista-empresas");
+
+    // Limpa antes de popular
+    listaEmpresas.innerHTML = "";
+
+    opcoes.forEach((opt) => {
+      const label = document.createElement("label");
+      label.className =
+        "flex items-center px-3 py-1 hover:bg-violet-100 cursor-pointer";
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = opt.value; // valor real do campo
+      input.className = "mr-2";
+
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(opt.name)); // rótulo visível
+      listaEmpresas.appendChild(label);
+
+      // Listener de seleção
+      input.addEventListener("change", () => {
+        const nome = input.value;
+
+        if (input.checked) {
+          if (!dados.empresas.includes(nome)) dados.empresas.push(nome);
+        } else {
+          dados.empresas = dados.empresas.filter((e) => e !== nome);
+        }
+
+        atualizarTags();
+      });
+    });
+  } catch (err) {
+    console.error("Erro ao carregar campo de empreendimentos:", err);
+  }
+}
+
 // Função para renderizar tags
 function atualizarTags() {
+  const tagsContainer = document.getElementById("tags-container");
   tagsContainer.innerHTML = "";
-  dados.empresas.forEach((emp) => {
-    const tag = document.createElement("div");
+
+  dados.empresas.forEach((empresa) => {
+    const tag = document.createElement("span");
     tag.className =
-      "flex items-center bg-violet-200 text-violet-800 px-2 py-1 rounded";
+      "bg-violet-200 text-violet-700 px-2 py-1 rounded-full text-sm flex items-center gap-1";
+
     tag.innerHTML = `
-      <span>${emp}</span>
-      <button class="ml-2 text-violet-700 hover:text-violet-900" data-remove="${emp}">&times;</button>
+      ${empresa}
+      <button class="ml-1 text-violet-700 hover:text-violet-900">×</button>
     `;
-    tagsContainer.appendChild(tag);
-  });
 
-  // Texto do botão
-  dropdownEmpText.textContent = dados.empresas.length
-    ? `${dados.empresas.length} selecionado(s)`
-    : "Escolha os empreendimentos";
+    // Clique no X remove
+    tag.querySelector("button").addEventListener("click", () => {
+      dados.empresas = dados.empresas.filter((e) => e !== empresa);
 
-  // Eventos de remoção das tags
-  tagsContainer.querySelectorAll("button[data-remove]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const nome = btn.getAttribute("data-remove");
-      dados.empresas = dados.empresas.filter((e) => e !== nome);
-      listaEmpresas.querySelector(`input[value="${nome}"]`).checked = false;
+      // Desmarca o checkbox correspondente
+      const cb = document.querySelector(
+        `#lista-empresas input[value="${empresa}"]`
+      );
+      if (cb) cb.checked = false;
+
       atualizarTags();
     });
+
+    tagsContainer.appendChild(tag);
   });
 }
+carregarEmpreendimentos();
 
 // Fechar ao clicar fora
 document.addEventListener("click", (e) => {

@@ -22,6 +22,9 @@
 
     <!-- Bootstrap para o tema -->
 
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+
     <link rel="stylesheet" href="style.css" />
   </head>
   <body id="root" class="flex bg-[var(--background-soft)]">
@@ -37,7 +40,7 @@
         >
           <div
             id="menu-tickets"
-            class="menu-item flex flex-col text-center cursor-pointer border-r-1 border-[#ccc] p-2 px-4 bg-[#bedbff] rounded-l-[22px]"
+            class="menu-item flex flex-col text-center cursor-pointer border-r-1 border-[#ccc] p-2 px-4 bg-[#f29d42] rounded-l-[22px]"
           >
             <i class="bi bi-plus-circle text-xl"></i>
           </div>
@@ -56,7 +59,7 @@
         <div class="line_etapas bg-gray-200 w-1 relative h-[80%]">
           <div
             id="line-progress"
-            class="line_etapas_check h-[0px] bg-[#cd1a1d] w-1 z-2"
+            class="line_etapas_check h-[0px] bg-[#f29d42] w-1 z-2"
           ></div>
         </div>
         <div
@@ -65,7 +68,7 @@
           <div class="etapas_list flex gap-6 items-center">
             <i
               id="etapa-icon-1"
-              class="bi bi-calendar text-[1.5rem] bg-white"
+              class="bi bi-calendar text-[1.5rem] bg-[#feefce]"
               data-color="#fff"
             ></i>
             <span>Etapa 1</span>
@@ -73,21 +76,21 @@
           <div class="etapas_list flex gap-6 items-center">
             <i
               id="etapa-icon-2"
-              class="bi bi-building text-[1.5rem] bg-white"
+              class="bi bi-building text-[1.5rem] bg-[#feefce]"
             ></i>
             <span>Etapa 2</span>
           </div>
           <div class="etapas_list flex gap-6 items-center">
             <i
               id="etapa-icon-3"
-              class="bi bi-calendar2-week text-[1.5rem] bg-white"
+              class="bi bi-calendar2-week text-[1.5rem] bg-[#feefce]"
             ></i>
             <span>Etapa 3</span>
           </div>
           <div class="etapas_list flex gap-6 items-center">
             <i
               id="etapa-icon-4"
-              class="bi bi-clock-history text-[1.5rem] bg-white"
+              class="bi bi-clock-history text-[1.5rem] bg-[#feefce]"
             ></i>
             <span>Etapa 4</span>
           </div>
@@ -121,7 +124,7 @@
           <li class="w-full flex justify-center">
             <button
               id="refreshBtn"
-              class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+              class="bg-[#f29d42] text-white px-4 py-2 rounded"
             >
               Refresh
             </button>
@@ -144,7 +147,7 @@
               Selecione o tipo de agendamento
             </h3>
             <select
-              id="field-39804354708123"
+              id="field-34533892299671"
               class="w-full border rounded px-3 py-2"
             >
               <option value="" selected disabled>Escolha uma opção</option>
@@ -152,13 +155,13 @@
             <div class="mt-4">
               <button
                 id="next1"
-                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+                class="bg-[#f29d42] text-white px-4 py-2 rounded"
               >
                 Prosseguir
               </button>
             </div>
           </div>
-          <!-- Etapa 2 - Seleção de empreendimentos -->
+           <!-- Etapa 2 - Seleção de empreendimentos -->
           <div data-etapa="2" class="flex flex-col gap-10 w-[40%] m-auto">
             <h3 class="mb-4 font-bold">Selecione os empreendimentos</h3>
             <!-- Botão do dropdown -->
@@ -188,35 +191,11 @@
                   </svg>
                 </button>
                 <!-- Lista de opções -->
-                <div
-                  id="lista-empresas"
-                  class="absolute left-0 w-full mt-1 bg-white border rounded shadow hidden z-10"
-                >
-                  <label
-                    class="flex items-center px-3 py-1 hover:bg-violet-100"
-                  >
-                    <input type="checkbox" value="Empresa 1" class="mr-2" />
-                    Empresa 1
-                  </label>
-                  <label
-                    class="flex items-center px-3 py-1 hover:bg-violet-100"
-                  >
-                    <input type="checkbox" value="Empresa 2" class="mr-2" />
-                    Empresa 2
-                  </label>
-                  <label
-                    class="flex items-center px-3 py-1 hover:bg-violet-100"
-                  >
-                    <input type="checkbox" value="Empresa 3" class="mr-2" />
-                    Empresa 3
-                  </label>
-                  <label
-                    class="flex items-center px-3 py-1 hover:bg-violet-100"
-                  >
-                    <input type="checkbox" value="Empresa 4" class="mr-2" />
-                    Empresa 4
-                  </label>
+                <!-- Lista de opções -->
+                <div id="lista-empresas" class="absolute left-0 w-full mt-1 bg-white border rounded shadow z-10 hidden">
+                  <!-- opções virão via JS -->
                 </div>
+
               </div>
             </div>
             <!-- Tags selecionadas -->
@@ -236,18 +215,27 @@
           <!-- Etapa 3 - Datas -->
           <div data-etapa="3" class="flex flex-col gap-10 w-[100%] m-auto">
             <div class="flex gap-4 w-full">
-              <div class="date_select flex flex-col gap-4 w-[25%]">
+            
+              <div class="date_select  flex flex-col gap-4 w-[25%]">
+                <div class="text-calendar-previous">
                 <h3 class="mb-4 font-bold text-[1.4rem]">Selecione as datas</h3>
-                <div id="rangeCalendar"></div>
+                </div>
+                <div id="rangeCalendar" class="date_select"></div>
               </div>
+           
+              
               <div class="dates_selected flex flex-col gap-4 w-[75%]">
-                <h3 class="mb-[16px] font-bold text-[1.4rem]">
-                  Datas Selecionadas:
-                </h3>
-                <div
+                <div class="calendar-sweet">
+
+                  <div class="bg-[#4b4c49] text-stone-50 rounded-md">
+                    <h3 class="mb-[16px] font-bold text-[1.4rem] pl-3">
+                      Datas Selecionadas:
+                    </h3>
+                  </div>
+                  <div
                   id="selectedDatesGrid"
-                  class="grid grid-cols-7 rounded-[12px] bg-[#4a4a4a] gap-4 h-[90%]"
-                >
+                  class="grid grid-cols-7 rounded-[12px] gap-4 h-[90%]"
+                  >
                   <!-- Colunas fixas -->
                   <div
                     class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
@@ -263,16 +251,16 @@
                     ></div>
                   </div>
                   <div
-                    class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
+                  class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
                   >
                     <h4
                       class="px-4 py-2 w-full text-center font-bold text-[#ffffffff] border-r-[#bbb] border-solid bg-[#3d4041]"
                     >
-                      Seg
+                    Seg
                     </h4>
                     <div
-                      class="day-column w-full flex flex-col gap-2 p-2 bg-[#3a3a3a] h-full"
-                      data-day="1"
+                    class="day-column w-full flex flex-col gap-2 p-2 bg-[#3a3a3a] h-full"
+                    data-day="1"
                     ></div>
                   </div>
                   <div
@@ -280,7 +268,7 @@
                   >
                     <h4
                       class="px-4 py-2 w-full text-center font-bold text-[#ffffffff] border-r-[#bbb] border-solid bg-[#3d4041]"
-                    >
+                      >
                       Ter
                     </h4>
                     <div
@@ -289,19 +277,19 @@
                     ></div>
                   </div>
                   <div
-                    class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
+                  class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
                   >
                     <h4
                       class="px-4 py-2 w-full text-center font-bold text-[#ffffffff] border-r-[#bbb] border-solid bg-[#3d4041]"
                     >
-                      Qua
+                    Qua
                     </h4>
                     <div
-                      class="day-column w-full flex flex-col gap-2 p-2 bg-[#3a3a3a] h-full"
+                    class="day-column w-full flex flex-col gap-2 p-2 bg-[#3a3a3a] h-full"
                       data-day="3"
-                    ></div>
-                  </div>
-                  <div
+                      ></div>
+                    </div>
+                    <div
                     class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
                   >
                     <h4
@@ -315,7 +303,7 @@
                     ></div>
                   </div>
                   <div
-                    class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
+                  class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
                   >
                     <h4
                       class="px-4 py-2 w-full text-center font-bold text-[#ffffffff] border-r-[#bbb] border-solid bg-[#3d4041]"
@@ -325,37 +313,38 @@
                     <div
                       class="day-column w-full flex flex-col gap-2 p-2 bg-[#3a3a3a] h-full"
                       data-day="5"
-                    ></div>
+                      ></div>
                   </div>
                   <div
                     class="flex flex-col items-center border-solid border-[#212121] rounded-[12px] border-2 overflow-hidden"
                   >
                     <h4
-                      class="px-4 py-2 w-full text-center font-bold text-[#ffffffff] border-r-[#bbb] border-solid bg-[#3d4041]"
-                    >
+                      class="px-4 pr-4 py-2 w-full text-center font-bold text-[#ffffffff] border-r-[#bbb] border-solid bg-[#3d4041]"
+                      >
                       Sáb
                     </h4>
                     <div
                       class="day-column w-full flex flex-col gap-2 p-2 bg-[#3a3a3a] h-full"
                       data-day="6"
-                    ></div>
+                      ></div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="mt-4">
-              <button id="back3" class="bg-gray-300 px-4 py-2 rounded">
+              <button id="back3" class="bg-[#fbddad] px-4 py-2 rounded">
                 Voltar
               </button>
               <button
                 id="next3"
-                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+                class="bg-[#f29d42] text-white px-4 py-2 rounded"
               >
                 Prosseguir
               </button>
               <button
                 id="saveSelection"
-                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+                class="bg-[#f29d42] text-white px-4 py-2 rounded"
               >
                 Salvar seleção
               </button>
@@ -407,12 +396,12 @@
               </div>
             </div>
             <div class="mt-4">
-              <button id="back4" class="bg-gray-300 px-4 py-2 rounded">
+              <button id="back4" class="bg-[#fbddad] px-4 py-2 rounded">
                 Voltar
               </button>
               <button
                 id="prosseguir4"
-                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+                class="bg-[#f29d42] text-white px-4 py-2 rounded"
               >
                 Prosseguir
               </button>
@@ -433,13 +422,13 @@
             <div class="mt-4 flex gap-3">
               <button
                 id="back5"
-                class="bg-gray-400 text-white px-4 py-2 rounded"
+                class="bg-[#fbddad] text-black px-4 py-2 rounded"
               >
                 Voltar
               </button>
               <button
                 id="enviar"
-                class="bg-[#cd1a1d] text-white px-4 py-2 rounded"
+                class="bg-[#f29d42] text-white px-4 py-2 rounded"
               >
                 Enviar
               </button>
@@ -539,7 +528,6 @@
 
   <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
   <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
-  <script src="js/second_tab.js"></script>
   <script src="js/init.js"></script>
   <script src="js/miniCalendar.js"></script>
   <script src="js/rangeCalendar.js"></script>

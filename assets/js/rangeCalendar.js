@@ -25,7 +25,7 @@ function renderTags() {
     const tag = document.createElement("div");
     tag.className = `
       flex items-center justify-between gap-1 px-2 py-1 rounded text-[0.75rem] font-bold 
-      ${isRemoved ? "bg-red-400 text-white" : "bg-[#8d69e9] text-white"}
+      ${isRemoved ? "bg-red-400 text-white" : "bg-[#f29d42] text-white"}
     `;
 
     tag.innerHTML = `

@@ -1,8 +1,8 @@
 {
   "app": {
-    "name": "Zen Tunes",
-    "short_description": "Play the famous zen tunes in your help desk.",
-    "long_description": "Play the famous zen tunes in your help desk and \n listen to the beats it has to offer.",
-    "installation_instructions": "Simply click install."
+    "name": "Vita Date",
+    "short_description": "Bulk ticket creation application.",
+    "long_description": "The application aims to use tickets to schedule types of meetings, based on date, time and enterprise.",
+    "installation_instructions": "..."
   }
 }

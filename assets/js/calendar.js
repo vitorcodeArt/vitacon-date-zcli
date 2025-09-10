@@ -1,4 +1,39 @@
-import { fetchTickets, getFields, VALUE_LABEL_MAP } from "./ticketsService.js";
+import { fetchDisponibilidades, getFields, VALUE_LABEL_MAP } from "./ticketsService.js";
+
+function mapDisponibilidadesToEvents(disponibilidades) {
+  if (!Array.isArray(disponibilidades)) {
+    console.error("❌ ERRO: fetchDisponibilidades não retornou um array:", disponibilidades);
+    return [];
+  }
+
+  const eventos = disponibilidades.map((d, i) => {
+    try {
+      const start = `${d.data}T${d.hora}`;
+      const end = `${d.data_final}T${d.hora}`; // se o final for no mesmo horário do último dia
+
+      return {
+        id: d.id || `disp-${i}`,
+        title: `${d.executivo_nome || "Disponível"} - ${d.tipo || "Evento"}`,
+        start: start,
+        end: end,
+        extendedProps: {
+          status: d.status || "Livre",
+          tipo: d.tipo || "Padrão",
+          empreendimento: d.empreendimento || null,
+          executivo_nome: d.executivo_nome || null,
+          agente_id: d.agente_id || null
+        }
+      };
+    } catch (err) {
+      console.error("❌ Erro ao mapear disponibilidade:", d, err);
+      return null;
+    }
+  }).filter(Boolean);
+
+  console.log("✅ Eventos mapeados para o calendário:", eventos);
+  return eventos;
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
   var calendarEl = document.getElementById("mainCalendar");
@@ -77,22 +112,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔹 Eventos filtrados por semana
     events: async function (info, successCallback, failureCallback) {
       try {
-        // info.start e info.end já vêm no formato Date
-        const startOfWeek = info.start.toISOString().slice(0, 10);
         const endOfWeek = info.end.toISOString().slice(0, 10);
 
-        const tickets = await fetchTickets(startOfWeek, endOfWeek);
+        // fetchDisponibilidades já retorna os eventos prontos
+        const disponibilidades = await fetchDisponibilidades(endOfWeek);
 
-        successCallback(tickets);
+        // passa diretamente para o FullCalendar
+        successCallback(disponibilidades);
+
+        console.log("📅 Eventos enviados ao FullCalendar:", disponibilidades);
+
       } catch (err) {
+        console.error("Erro ao carregar disponibilidades:", err);
         failureCallback(err);
       }
     },
-
     eventClick: function (info) {
       let ticketId = info.event.extendedProps.ticketId;
       if (ticketId) {
-        let url = `https://con-bcrcx-fabio.zendesk.com/agent/tickets/${ticketId}`;
+        let url = `https://vitaconsupport.zendesk.com/agent/tickets/${ticketId}`;
         window.open(url, "_blank");
       }
     },

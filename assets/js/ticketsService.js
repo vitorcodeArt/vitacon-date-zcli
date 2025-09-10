@@ -32,7 +32,7 @@ export async function getFields() {
 
     console.log("Campos carregados:", data.ticket_fields);
 
-    let wantedIds = [39804354708123, 39880698235803]; // tipo e status
+    let wantedIds = [34533892299671, 34533890144791]; // tipo e status
     let filtered = data.ticket_fields.filter(f => wantedIds.includes(f.id));
 
     // Preencher selects
@@ -76,136 +76,280 @@ export async function getFields() {
 // Buscar tickets existentes
 // ticketsService.js
 const FIELDS_MAP = {
-  39804354708123: "tipo",
-  39880756544539: "empreendimento",
-  39880638747163: "horario",
-  39804409012763: "agendamento",
-  39880698235803: "status",
+  34533892299671: "tipo",
+  24480897626903: "empreendimento",
+  34496522176663: "horario",
+  34496446531991: "agendamento",
+  34533890144791: "status",
 };
 
-// 🔹 Função para buscar tickets e padronizar os campos
-export async function getTickets() {
+export async function getEmpreendimentos() {
   try {
     const data = await client.request({
-      url: `/api/v2/search.json?query=type:ticket ticket_form_id:39804179516187`,
+      url: `/api/v2/ticket_fields/22242038869783`,
       type: "GET",
     });
 
-    // Retorna apenas os campos importantes de cada ticket
-    return data.results.map((ticket) => {
-      let custom = {};
-      for (let fieldId in FIELDS_MAP) {
-        const field = ticket.fields?.find((f) => f.id == fieldId);
-        custom[FIELDS_MAP[fieldId]] = field ? field.value : null;
-      }
+    console.log("Campo de empreendimentos:", data.ticket_field);
 
-      if (!custom.tipo || !custom.empreendimento || !custom.agendamento || !custom.horario) {
-        return null; // descarta tickets incompletos
-      }
-
-      // padroniza a data/hora como string "YYYY-MM-DD" e "HH:mm"
-      const padData = custom.agendamento; // assume que já vem nesse formato
-      const padHora = custom.horario.padStart(5, "0"); // "09:00" em vez de "9:00"
-
-      return {
-        ticketId: ticket.id,
-        tipo: custom.tipo,
-        empreendimento: custom.empreendimento,
-        data: padData,
-        hora: padHora,
-      };
-    }).filter(Boolean);
-  } catch (err) {
-    console.error("Erro ao buscar tickets:", err);
-    throw err;
+    return data.ticket_field.custom_field_options; 
+    // cada item = {id, name, value, default}
+  } catch (error) {
+    console.error("Erro ao carregar empreendimentos:", error);
+    return [];
   }
 }
+
+
+// 🔹 Função para buscar tickets e padronizar os campos
+// export async function getTickets() {
+//   try {
+//     const data = await client.request({
+//       url: `/api/v2/search.json?query=type:ticket ticket_form_id:39804179516187`,
+//       type: "GET",
+//     });
+
+//     // Retorna apenas os campos importantes de cada ticket
+//     return data.results.map((ticket) => {
+//       let custom = {};
+//       for (let fieldId in FIELDS_MAP) {
+//         const field = ticket.fields?.find((f) => f.id == fieldId);
+//         custom[FIELDS_MAP[fieldId]] = field ? field.value : null;
+//       }
+
+//       if (!custom.tipo || !custom.empreendimento || !custom.agendamento || !custom.horario) {
+//         return null; // descarta tickets incompletos
+//       }
+
+//       // padroniza a data/hora como string "YYYY-MM-DD" e "HH:mm"
+//       const padData = custom.agendamento; // assume que já vem nesse formato
+//       const padHora = custom.horario.padStart(5, "0"); // "09:00" em vez de "9:00"
+
+//       return {
+//         ticketId: ticket.id,
+//         tipo: custom.tipo,
+//         empreendimento: custom.empreendimento,
+//         data: padData,
+//         hora: padHora,
+//       };
+//     }).filter(Boolean);
+//   } catch (err) {
+//     console.error("Erro ao buscar tickets:", err);
+//     throw err;
+//   }
+// }
 
 // 🔹 Função para criar ticket usando ZAF client
-export async function createTicket(payload) {
+// export async function createTicket(payload) {
+//   try {
+//     const response = await client.request({
+//       url: `/api/v2/tickets.json`,
+//       type: "POST",
+//       contentType: "application/json",
+//       data: JSON.stringify(payload),
+//     });
+
+//     // Retorna o ticket criado com os campos importantes
+//     const t = response.ticket;
+//     const custom = {};
+//     for (let fieldId in FIELDS_MAP) {
+//       const f = t.fields?.find((f) => f.id == fieldId);
+//       custom[FIELDS_MAP[fieldId]] = f ? f.value : null;
+//     }
+
+//     return {
+//       ticketId: t.id,
+//       tipo: custom.tipo,
+//       empreendimento: custom.empreendimento,
+//       data: custom.agendamento,
+//       hora: custom.horario,
+//     };
+//   } catch (err) {
+//     console.error("Erro ao criar ticket:", err);
+//     throw err;
+//   }
+// }
+
+export async function getDisponibilidades() {
   try {
-    const response = await client.request({
-      url: `/api/v2/tickets.json`,
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(payload),
+    const data = await client.request({
+      url: `/api/v2/custom_objects/availability/records`,
+      type: "GET",
     });
 
-    // Retorna o ticket criado com os campos importantes
-    const t = response.ticket;
-    const custom = {};
-    for (let fieldId in FIELDS_MAP) {
-      const f = t.fields?.find((f) => f.id == fieldId);
-      custom[FIELDS_MAP[fieldId]] = f ? f.value : null;
-    }
+    // transforma registros em objetos simplificados
+    return data.custom_object_records.map((rec) => {
+      const f = rec.custom_object_fields;
 
-    return {
-      ticketId: t.id,
-      tipo: custom.tipo,
-      empreendimento: custom.empreendimento,
-      data: custom.agendamento,
-      hora: custom.horario,
-    };
+      if (!f.tipo || !f.empreendimento || !f.data || !f.hora) {
+        return null; // descarta registros incompletos
+      }
+
+      const padData = f.data.split("T")[0]; // pega só YYYY-MM-DD
+      const padHora = f.hora.padStart(5, "0");
+
+      return {
+        id: rec.id,
+        tipo: f.tipo,
+        empreendimento: f.empreendimento,
+        data: padData,
+        hora: padHora,
+        status: f.status,
+      };
+    }).filter(Boolean);
+
   } catch (err) {
-    console.error("Erro ao criar ticket:", err);
+    console.error("Erro ao buscar disponibilidades:", err);
     throw err;
   }
 }
 
-// 🔹 Função genérica para buscar tickets
-export async function fetchTickets(startOfWeek, endOfWeek) {
+export async function fetchDisponibilidades(semanaFinal) {
   try {
-    let allTickets = [];
-    let url = `/api/v2/search.json?query=type:ticket ticket_form_id:39804179516187`;
+    let allRecords = [];
+    let url = `/api/v2/custom_objects/availability/records/search?query=semana_final:${semanaFinal}`;
 
     while (url) {
       const data = await client.request({ url, type: "GET" });
 
-      const tickets = data.results.map(ticket => {
-        // transforma fields em mapa para performance
-        const fieldsMap = {};
-        (ticket.fields || []).forEach(f => fieldsMap[f.id] = f.value);
+      if (!data.custom_object_records.length) {
+        console.warn("⚠️ Nenhum registro encontrado nesta página.");
+        break;
+      }
 
-        let custom = {};
-        for (let fieldId in FIELDS_MAP) {
-          custom[FIELDS_MAP[fieldId]] = fieldsMap[fieldId] || null;
-        }
+      const disponibilidades = data.custom_object_records.map(record => {
+        const f = record.custom_object_fields;
 
-        if (!custom.agendamento) return null;
-
-        // filtra pela semana
-        if (custom.agendamento < startOfWeek || custom.agendamento > endOfWeek) return null;
-
-        let startDate = custom.agendamento;
-        if (custom.horario) startDate = `${startDate}T${custom.horario}`;
+        // extrai apenas YYYY-MM-DD
+        const datePart = f.data.split("T")[0];
+        const startDate = f.hora ? `${datePart}T${f.hora}` : datePart;
 
         return {
-          id: ticket.id,
-          title: `${VALUE_LABEL_MAP[custom.tipo] || custom.tipo} - ${VALUE_LABEL_MAP[custom.empreendimento] || custom.empreendimento}`,
+          id: record.id,
+          title: `${f.tipo} - ${f.empreendimento}`,
           start: startDate,
-          borderColor: getGroupColor(custom.status),
-          backgroundColor: getGroupColor(custom.status),
+          borderColor: getGroupColor(f.status),
+          backgroundColor: getGroupColor(f.status),
           color: "#fff",
-          classNames: [custom.tipo, custom.empreendimento],
+          classNames: [f.tipo, f.empreendimento],
           extendedProps: {
-            ticketId: ticket.id,
-            status: custom.status,
-            empreendimento: custom.empreendimento,
-            tipo: custom.tipo,
+            status: f.status,
+            empreendimento: f.empreendimento,
+            tipo: f.tipo,
+            executivo: f.executivo_nome,
+            agenteId: f.agente_id
           },
         };
-      }).filter(Boolean);
+      });
 
-      allTickets.push(...tickets);
-      url = data.next_page; // próxima página
+      allRecords.push(...disponibilidades);
+
+      // paginação por cursor
+      url = data.links?.next || null;
     }
 
-    return allTickets;
-  } catch (error) {
-    console.error("Erro ao buscar tickets:", error);
-    throw error;
+    console.log("✅ Eventos mapeados para o calendário:", allRecords);
+    return allRecords;
+  } catch (err) {
+    console.error("Erro ao buscar disponibilidades:", err);
+    throw err;
   }
 }
+
+
+
+
+export async function createDisponibilidade(payload) {
+  try {
+    // calcula semana_final se não estiver no payload
+    let semanaFinal = payload.semana_final;
+    if (!semanaFinal) {
+      semanaFinal = calcularDataFinal(payload.data); // função retorna "YYYY-MM-DD"
+    }
+
+    const response = await client.request({
+      url: `/api/v2/custom_objects/availability/records`,
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        custom_object_record: {
+          custom_object_fields: {
+            data: payload.data,                 // "2025-09-01T00:00:00+00:00"
+            data_final: payload.data_final,     // "2025-09-06T00:00:00+00:00"
+            semana_final: semanaFinal,          // Novo campo
+            hora: payload.hora,                 // "12:00"
+            tipo: payload.tipo,                 // "Vistoria"
+            empreendimento: payload.empreendimento,
+            status: payload.status || "Livre",
+            agente_id: payload.agente_id || null,
+            executivo_nome: payload.executivo_nome || null
+          }
+        }
+      })
+    });
+
+    return response.custom_object_record;
+  } catch (err) {
+    console.error("Erro ao criar disponibilidade:", err);
+    throw err;
+  }
+}
+
+
+// 🔹 Função genérica para buscar tickets
+// export async function fetchTickets(startOfWeek, endOfWeek) {
+//   try {
+//     let allTickets = [];
+//     let url = `/api/v2/search.json?query=type:ticket ticket_form_id:34533996322071`;
+
+//     while (url) {
+//       const data = await client.request({ url, type: "GET" });
+
+//       const tickets = data.results.map(ticket => {
+//         // transforma fields em mapa para performance
+//         const fieldsMap = {};
+//         (ticket.fields || []).forEach(f => fieldsMap[f.id] = f.value);
+
+//         let custom = {};
+//         for (let fieldId in FIELDS_MAP) {
+//           custom[FIELDS_MAP[fieldId]] = fieldsMap[fieldId] || null;
+//         }
+
+//         if (!custom.agendamento) return null;
+
+//         // filtra pela semana
+//         if (custom.agendamento < startOfWeek || custom.agendamento > endOfWeek) return null;
+
+//         let startDate = custom.agendamento;
+//         if (custom.horario) startDate = `${startDate}T${custom.horario}`;
+
+//         return {
+//           id: ticket.id,
+//           title: `${VALUE_LABEL_MAP[custom.tipo] || custom.tipo} - ${VALUE_LABEL_MAP[custom.empreendimento] || custom.empreendimento}`,
+//           start: startDate,
+//           borderColor: getGroupColor(custom.status),
+//           backgroundColor: getGroupColor(custom.status),
+//           color: "#fff",
+//           classNames: [custom.tipo, custom.empreendimento],
+//           extendedProps: {
+//             ticketId: ticket.id,
+//             status: custom.status,
+//             empreendimento: custom.empreendimento,
+//             tipo: custom.tipo,
+//           },
+//         };
+//       }).filter(Boolean);
+
+//       allTickets.push(...tickets);
+//       url = data.next_page; // próxima página
+//     }
+
+//     return allTickets;
+//   } catch (error) {
+//     console.error("Erro ao buscar tickets:", error);
+//     throw error;
+//   }
+// }
 
 
  function getGroupColor(status) {

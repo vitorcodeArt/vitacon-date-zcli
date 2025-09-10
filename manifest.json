@@ -13,5 +13,57 @@
     }
   },
   "version": "1.0.0",
-  "frameworkVersion": "2.0"
+  "frameworkVersion": "2.0",
+  "parameters": [
+    {
+      "name": "horario_agendamento_campo",
+      "type": "text",
+      "required": true,
+      "secure": false,
+      "label": {
+        "en": "ID do Campo de Texto 1",
+        "pt-BR": "ID do Campo de Texto 1"
+      }
+    },
+    {
+      "name": "empreendimento_campo",
+      "type": "text",
+      "required": false,
+      "secure": false,
+      "label": {
+        "en": "ID do Campo de Texto 2",
+        "pt-BR": "ID do Campo de Texto 2"
+      }
+    },
+    {
+      "name": "tipo_de_agendamento",
+      "type": "text",
+      "required": true,
+      "secure": false,
+      "label": {
+        "en": "ID do Campo Lista Suspensa 1",
+        "pt-BR": "ID do Campo Lista Suspensa 1"
+      }
+    },
+    {
+      "name": "tipo_agenda",
+      "type": "text",
+      "required": false,
+      "secure": false,
+      "label": {
+        "en": "ID do Campo Lista Suspensa 2",
+        "pt-BR": "ID do Campo Lista Suspensa 2"
+      }
+    },
+    {
+      "name": "campo_data",
+      "type": "text",
+      "required": false,
+      "secure": false,
+      "label": {
+        "en": "ID do Campo de Data",
+        "pt-BR": "ID do Campo de Data"
+      }
+    }
+  ]
 }

@@ -1,69 +1,107 @@
-// ticketsCreate.js
-import { createTicket, getTickets, getFields } from "./ticketsService.js";
+import { createDisponibilidade, getDisponibilidades } from "./ticketsService.js";
 
-getFields();
+let existingDisponCache = null;
 
-let existingTicketsCache = null;
+function calcularDataFinal(dataInput) {
+  // extrai ano-mes-dia de forma segura (ignora horas e offsets)
+  let y, m, d;
+  if (dataInput instanceof Date) {
+    y = dataInput.getFullYear();
+    m = dataInput.getMonth() + 1;
+    d = dataInput.getDate();
+  } else if (typeof dataInput === "string") {
+    // pega os primeiros 10 chars se for formato ISO (yyyy-mm-dd)
+    const match = dataInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      y = parseInt(match[1], 10);
+      m = parseInt(match[2], 10);
+      d = parseInt(match[3], 10);
+    } else {
+      // fallback: cria Date e extrai (menos preferível)
+      const tmp = new Date(dataInput);
+      y = tmp.getFullYear();
+      m = tmp.getMonth() + 1;
+      d = tmp.getDate();
+    }
+  } else {
+    throw new Error("Formato de data inválido");
+  }
 
-export async function validarECriarTickets(dados) {
+  // cria uma Date no UTC para evitar shifts locais
+  const dt = new Date(Date.UTC(y, m - 1, d)); // meia-noite UTC da data
+  const diaSemana = dt.getUTCDay(); // 0=domingo, 6=sábado
+
+  // diferença até o sábado da mesma semana
+  let diff;
+  if (diaSemana === 0) {
+    // domingo -> sábado da MESMA semana (6 dias à frente)
+    diff = 6;
+  } else {
+    // segunda (1) ... sábado (6)
+    diff = 6 - diaSemana;
+  }
+
+  const dtFinal = new Date(dt);
+  dtFinal.setUTCDate(dt.getUTCDate() + diff);
+
+  // format YYYY-MM-DD
+  const yyyy = dtFinal.getUTCFullYear();
+  const mm = String(dtFinal.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dtFinal.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+export async function validarECriarDisponibilidades(dados) {
   try {
-    if (!existingTicketsCache) {
-      const tickets = await getTickets();
-      existingTicketsCache = tickets.map(t => ({
-        tipo: t.tipo,
-        empreendimento: t.empreendimento,
-        data: t.data,
-        hora: t.hora
+    if (!existingDisponCache) {
+      const disponibilidades = await getDisponibilidades();
+      existingDisponCache = disponibilidades.map(d => ({
+        tipo: d.tipo,
+        empreendimento: d.empreendimento,
+        data: d.data,
+        hora: d.hora
       }));
     }
 
-    const ticketsCriados = [];
-    const ticketsDuplicados = [];
+    const disponCriadas = [];
+    const disponDuplicadas = [];
 
     for (let empresa of dados.empresas) {
       for (let data of dados.datas) {
         for (let hora of dados.horas) {
-
-          const duplicado = existingTicketsCache.some(t => 
-            t.tipo === dados.tipo &&
-            t.empreendimento === empresa &&
-            t.data === data &&
-            t.hora === hora
+          
+          const duplicado = existingDisponCache.some(d =>
+            d.tipo === dados.tipo &&
+            d.empreendimento === empresa &&
+            d.data === data &&
+            d.hora === hora
           );
 
           if (duplicado) {
-            ticketsDuplicados.push({ tipo: dados.tipo, empresa, data, hora });
+            disponDuplicadas.push({ tipo: dados.tipo, empresa, data, hora });
             continue;
           }
 
-          const ticketPayload = {
-            ticket: {
-              subject: "Calendar by Tickets",
-              brand_id: 24140649175707,
-              ticket_form_id: 39804179516187,
-              comment: {
-                body: `Agendamento:
-- Tipo: ${dados.tipo}
-- Empreendimento: ${empresa}
-- Data: ${data}
-- Hora: ${hora}`
-              },
-              priority: "normal",
-              custom_fields: [
-                { id: 39804354708123, value: dados.tipo },
-                { id: 39880756544539, value: empresa },
-                { id: 39880638747163, value: hora },
-                { id: 39804409012763, value: data },
-                { id: 39880698235803, value: "vita_agenda_status_livre" }
-              ]
-            }
+          const dataFinalStr = calcularDataFinal(data); // ex: "2025-09-13"
+
+          const payload = {
+            data: data, // se o backend espera "YYYY-MM-DD" ou "YYYY-MM-DDT00:00:00+00:00" adapte
+            data_final: dataFinalStr, // ou dataFinalStr + "T00:00:00+00:00"
+            semana_final: dataFinalStr, // adicionado aqui
+
+            hora: hora,
+            tipo: dados.tipo,
+            empreendimento: empresa,
+            status: "Livre",
+            agente_id: dados.agente_id || null,
+            executivo_nome: dados.executivo_nome || null
           };
 
-          const retorno = await createTicket(ticketPayload);
-          ticketsCriados.push(retorno);
+          const retorno = await createDisponibilidade(payload);
+          disponCriadas.push(retorno);
 
           // Atualiza cache
-          existingTicketsCache.push({
+          existingDisponCache.push({
             tipo: dados.tipo,
             empreendimento: empresa,
             data: data,
@@ -74,14 +112,15 @@ export async function validarECriarTickets(dados) {
     }
 
     // Monta popup com resultado
-    let mensagem = `<strong>Tickets Criados:</strong><br>`;
-    ticketsCriados.forEach(t => {
-      mensagem += `✅ ${t.tipo}, ${t.empreendimento}, ${t.data}, ${t.hora}<br>`;
+    let mensagem = `<strong>Disponibilidades Criadas:</strong><br>`;
+    disponCriadas.forEach(d => {
+      const f = d.custom_object_fields;
+      mensagem += `✅ ${f.tipo}, ${f.empreendimento}, ${f.data}, ${f.hora}<br>`;
     });
-    if (ticketsDuplicados.length) {
-      mensagem += `<br><strong>Tickets Duplicados:</strong><br>`;
-      ticketsDuplicados.forEach(t => {
-        mensagem += `❌ ${t.tipo}, ${t.empreendimento}, ${t.data}, ${t.hora}<br>`;
+    if (disponDuplicadas.length) {
+      mensagem += `<br><strong>Duplicadas:</strong><br>`;
+      disponDuplicadas.forEach(d => {
+        mensagem += `❌ ${d.tipo}, ${d.empresa}, ${d.data}, ${d.hora}<br>`;
       });
     }
 
@@ -100,10 +139,10 @@ export async function validarECriarTickets(dados) {
     document.body.appendChild(modal);
     document.getElementById("fecharModal").onclick = () => modal.remove();
 
-    return ticketsCriados;
+    return disponCriadas;
 
   } catch (err) {
-    console.error("Erro ao validar/criar tickets:", err);
+    console.error("Erro ao validar/criar disponibilidades:", err);
     return [];
   }
 }
