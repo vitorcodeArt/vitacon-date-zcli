@@ -61,17 +61,33 @@ function mostrarEtapa(n) {
 
   etapaAtual = n;
 
-  // Progresso visual
-  document
-    .querySelectorAll('[id^="etapa-icon-"]')
-    .forEach((icon) => icon.classList.remove("text-[#f29d42]"));
-  const etapaIcon = document.getElementById(`etapa-icon-${n}`);
-  if (etapaIcon) etapaIcon.classList.add("text-[#f29d42]");
+  // Progresso visual nos ícones
+  document.querySelectorAll('[id^="etapa-icon-"]').forEach((icon) => {
+    const etapa = parseInt(icon.id.replace("etapa-icon-", ""));
+    if (etapa <= n) {
+      // Etapa concluída ou atual → destacar
+      icon.classList.add("text-[#f29d42]");
+    } else {
+      // Etapas posteriores → resetar
+      icon.classList.remove("text-[#f29d42]");
+    }
+  });
 
-  // Linha lateral
-  const heights = { 1: "0px", 2: "33%", 3: "66%", 4: "100%" };
+  document.querySelectorAll('[id^="etapa-text-"]').forEach((text) => {
+    const etapa = parseInt(text.id.replace("etapa-text-", ""));
+    if (etapa <= n) {
+      // Etapa concluida ou atual → destacar
+      text.classList.add("text-[#f29d42]", "text-shadow-lg");
+    } else {
+      // Etapas posteriores → resetar
+      text.classList.remove("text-[#f29d42]", "text-shadow-lg");
+    }
+  });
+
+  // Linha lateral (ajuste conforme necessidade)
+  const widths = { 1: "0px", 2: "33%", 3: "66%", 4: "100%" };
   const lineProgress = document.getElementById("line-progress");
-  if (lineProgress) lineProgress.style.height = heights[n];
+  if (lineProgress) lineProgress.style.width = widths[n];
 }
 
 // Seleção empresas (multi)
@@ -216,10 +232,18 @@ document.getElementById("back2").onclick = () => mostrarEtapa(1);
 document.getElementById("back3").onclick = () => mostrarEtapa(2);
 document.getElementById("back4").onclick = () => mostrarEtapa(3);
 
+function setLoading(isLoading) {
+  const overlay = document.getElementById("loadingOverlay");
+  if (isLoading) {
+    overlay.classList.remove("hidden");
+  } else {
+    overlay.classList.add("hidden");
+  }
+}
+
 document.getElementById("enviar").onclick = () => {
   console.log("Enviando dados:", dados);
-  validarECriarDisponibilidades(dados);
-  swal("", "Deu tudo certo!", "success");
+  validarECriarDisponibilidades(dados, setLoading);
 };
 
 // Inicializar
@@ -269,7 +293,7 @@ async function carregarEmpreendimentos() {
 
       const input = document.createElement("input");
       input.type = "checkbox";
-      input.value = opt.value; // valor real do campo
+      input.value = opt.name; // valor real do campo
       input.className = "mr-2";
 
       label.appendChild(input);
@@ -296,17 +320,27 @@ async function carregarEmpreendimentos() {
 
 // Função para renderizar tags
 function atualizarTags() {
-  const tagsContainer = document.getElementById("tags-container");
-  tagsContainer.innerHTML = "";
+  const tagsContainer = document.getElementById("dropdownEmpText");
+  const placeholder = document.getElementById("placeholder-text");
+
+  // Remove apenas as tags antigas, preservando o placeholder
+  tagsContainer.querySelectorAll(".tag-empresa").forEach((el) => el.remove());
+
+  if (dados.empresas.length === 0) {
+    placeholder.style.display = "inline"; // mostra placeholder se não houver tags
+    return;
+  }
+
+  placeholder.style.display = "none"; // esconde placeholder
 
   dados.empresas.forEach((empresa) => {
     const tag = document.createElement("span");
     tag.className =
-      "bg-violet-200 text-violet-700 px-2 py-1 rounded-full text-sm flex items-center gap-1";
+      "tag-empresa bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-sm flex items-center gap-1";
 
     tag.innerHTML = `
       ${empresa}
-      <button class="ml-1 text-violet-700 hover:text-violet-900">×</button>
+      <button class="ml-1 text-violet-700 hover:text-orange-800">×</button>
     `;
 
     // Clique no X remove
@@ -325,6 +359,7 @@ function atualizarTags() {
     tagsContainer.appendChild(tag);
   });
 }
+
 carregarEmpreendimentos();
 
 // Fechar ao clicar fora

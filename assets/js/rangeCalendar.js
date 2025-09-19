@@ -80,11 +80,11 @@ document.addEventListener("DOMContentLoaded", function () {
     locale: "pt-br",
     headerToolbar: {
       left: "title",
-      right: "prev,next",
+      right: "next,prev",
     },
     buttonIcons: {
-      prev: "bi bi-arrow-left-short",
-      next: "bi bi-arrow-right-short",
+      prev: 'bi bi-arrow-down-short',  // Bootstrap icon para "anterior"
+      next: 'bi bi-arrow-up-short', // Bootstrap icon para "próximo"
     },
     dayHeaderFormat: { weekday: "short" },
     dayHeaderContent: (arg) => arg.text.charAt(0),

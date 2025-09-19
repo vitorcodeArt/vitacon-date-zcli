@@ -1,6 +1,11 @@
-import { createDisponibilidade, getDisponibilidades } from "./ticketsService.js";
+import {
+  createDisponibilidades,
+  getDisponibilidades,
+} from "./ticketsService.js";
 
 let existingDisponCache = null;
+
+let createdDisponIds = []; // array global para armazenar os IDs
 
 function calcularDataFinal(dataInput) {
   // extrai ano-mes-dia de forma segura (ignora horas e offsets)
@@ -51,98 +56,155 @@ function calcularDataFinal(dataInput) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-export async function validarECriarDisponibilidades(dados) {
+async function waitForJobCompletion(jobId, interval = 2000, timeout = 60000) {
+  const start = Date.now();
+
+  while (true) {
+    const jobResponse = await client.request({
+      url: `/api/v2/job_statuses/${jobId}.json`, // <- rota correta
+      type: "GET",
+    });
+
+    const job = jobResponse.job_status;
+    console.log(`⏳ Job ${jobId} - status: ${job.status}`);
+
+    if (job.status === "completed") {
+      console.log("✅ Job finalizado com sucesso:", job);
+      return job;
+    }
+
+    if (job.status === "failed") {
+      console.error("❌ Job falhou:", job);
+      throw new Error("Falha na criação em massa.");
+    }
+
+    if (Date.now() - start > timeout) {
+      throw new Error("⏰ Timeout: Job demorou demais para completar.");
+    }
+
+    await new Promise((res) => setTimeout(res, interval));
+  }
+}
+
+
+export async function validarECriarDisponibilidades(dados, setLoading) {
   try {
+    if (setLoading) setLoading(true);
+
+    // ================================
+    // Inicializa cache com registros existentes
+    // ================================
     if (!existingDisponCache) {
-      const disponibilidades = await getDisponibilidades();
-      existingDisponCache = disponibilidades.map(d => ({
+      const primeiraData = dados.datas[0]; // formato "YYYY-MM-DD"
+      const mesReferencia = primeiraData.slice(0, 7); // "YYYY-MM"
+
+      const disponibilidades = await getDisponibilidades(mesReferencia);
+
+      console.log("🔹 Disponibilidades já existentes retornadas pela API:", disponibilidades);
+
+      existingDisponCache = disponibilidades.map((d) => ({
         tipo: d.tipo,
         empreendimento: d.empreendimento,
         data: d.data,
-        hora: d.hora
+        hora: d.hora,
       }));
+
+      console.log("📦 Cache inicializado:", existingDisponCache);
     }
 
-    const disponCriadas = [];
+    // ================================
+    // Monta payloads novos e detecta duplicados
+    // ================================
     const disponDuplicadas = [];
+    const novosPayloads = [];
 
     for (let empresa of dados.empresas) {
       for (let data of dados.datas) {
         for (let hora of dados.horas) {
-          
-          const duplicado = existingDisponCache.some(d =>
-            d.tipo === dados.tipo &&
-            d.empreendimento === empresa &&
-            d.data === data &&
-            d.hora === hora
+          const candidato = {
+            tipo: dados.tipo,
+            empreendimento: empresa,
+            data,
+            hora: hora.padStart(5, "0"),
+          };
+
+          const jaExiste = existingDisponCache.some(
+            (d) =>
+              d.tipo === candidato.tipo &&
+              d.empreendimento === candidato.empreendimento &&
+              d.data === candidato.data &&
+              d.hora === candidato.hora
           );
 
-          if (duplicado) {
-            disponDuplicadas.push({ tipo: dados.tipo, empresa, data, hora });
+          if (jaExiste) {
+            disponDuplicadas.push(candidato);
             continue;
           }
 
-          const dataFinalStr = calcularDataFinal(data); // ex: "2025-09-13"
+          const dataFinalStr = calcularDataFinal(data);
 
-          const payload = {
-            data: data, // se o backend espera "YYYY-MM-DD" ou "YYYY-MM-DDT00:00:00+00:00" adapte
-            data_final: dataFinalStr, // ou dataFinalStr + "T00:00:00+00:00"
-            semana_final: dataFinalStr, // adicionado aqui
-
-            hora: hora,
-            tipo: dados.tipo,
-            empreendimento: empresa,
+          novosPayloads.push({
+            data: candidato.data,
+            data_final: dataFinalStr,
+            semana_final: dataFinalStr,
+            hora: candidato.hora,
+            tipo: candidato.tipo,
+            empreendimento: candidato.empreendimento,
             status: "Livre",
             agente_id: dados.agente_id || null,
-            executivo_nome: dados.executivo_nome || null
-          };
-
-          const retorno = await createDisponibilidade(payload);
-          disponCriadas.push(retorno);
-
-          // Atualiza cache
-          existingDisponCache.push({
-            tipo: dados.tipo,
-            empreendimento: empresa,
-            data: data,
-            hora: hora
+            executivo_nome: dados.executivo_nome || null,
           });
+
+          // adiciona ao cache para evitar recriar no mesmo fluxo
+          existingDisponCache.push(candidato);
         }
       }
     }
 
-    // Monta popup com resultado
-    let mensagem = `<strong>Disponibilidades Criadas:</strong><br>`;
-    disponCriadas.forEach(d => {
-      const f = d.custom_object_fields;
-      mensagem += `✅ ${f.tipo}, ${f.empreendimento}, ${f.data}, ${f.hora}<br>`;
-    });
-    if (disponDuplicadas.length) {
-      mensagem += `<br><strong>Duplicadas:</strong><br>`;
-      disponDuplicadas.forEach(d => {
-        mensagem += `❌ ${d.tipo}, ${d.empresa}, ${d.data}, ${d.hora}<br>`;
-      });
+    console.log("⚠️ Disponibilidades duplicadas ignoradas:", disponDuplicadas);
+    console.log("✅ Novos payloads a serem criados:", novosPayloads);
+
+    if (novosPayloads.length === 0) {
+      console.log("⚠️ Nenhuma disponibilidade nova a ser criada.");
+      return { criadas: [], duplicadas: disponDuplicadas };
     }
 
-    // Cria modal simples
-    const modal = document.createElement("div");
-    modal.innerHTML = `
-      <div style="
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #000;
-        max-height: 80%; overflow-y: auto; z-index: 9999;
-      ">
-        ${mensagem}
-        <button id="fecharModal" style="margin-top: 10px; padding: 5px 10px;">Fechar</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    document.getElementById("fecharModal").onclick = () => modal.remove();
+    // ================================
+    // Cria jobs em chunks de até 100 registros
+    // ================================
+    const allJobs = await createDisponibilidades(novosPayloads);
 
-    return disponCriadas;
+    const allIds = [];
 
+    // ================================
+    // Polling automático para acompanhar cada job
+    // ================================
+    for (let i = 0; i < allJobs.length; i++) {
+      const job = allJobs[i];
+      const jobId = job?.id;
+
+      if (!jobId) {
+        console.error("❌ Job ID não encontrado na resposta da API:", job);
+        continue;
+      }
+
+      if (setLoading) setLoading(`Criando job ${i + 1}/${allJobs.length}...`);
+      console.log(`⏳ Aguardando finalização do job ${i + 1}/${allJobs.length} (ID: ${jobId})`);
+
+      const finalJob = await waitForJobCompletion(jobId);
+
+      const idsCriadas = finalJob.results?.map((item) => item.id) || [];
+      console.log(`✅ Job ${i + 1} finalizado. IDs criadas:`, idsCriadas);
+
+      allIds.push(...idsCriadas);
+    }
+
+    return { criadas: allIds, duplicadas: disponDuplicadas };
   } catch (err) {
-    console.error("Erro ao validar/criar disponibilidades:", err);
-    return [];
+    console.error("❌ Erro ao validar/criar disponibilidades:", err);
+    return { criadas: [], duplicadas: [] };
+  } finally {
+    if (setLoading) setLoading(false);
   }
 }
+

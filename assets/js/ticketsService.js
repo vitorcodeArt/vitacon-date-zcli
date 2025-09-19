@@ -1,26 +1,3 @@
-// let field_id_tipo = 39804354708123;
-// let field_id_agendamento = 39804409012763;
-// let field_id_empreendimento = 39880756544539;
-// let field_id_horario = 39880638747163;
-
-
-// let api_return_tipo = [];
-// let api_values_tipo = [
-//     {
-//         "names": []
-//     },
-//     {
-//         "values": []
-//     }
-
-// ];
-
-// ticketsService.js
-// let client = null;
-
-// export function initTicketsService(zafClient) {
-//   client = zafClient;
-// }
 export let VALUE_LABEL_MAP = {}; // global para rótulos
 
 export async function getFields() {
@@ -47,7 +24,7 @@ export async function getFields() {
       // adiciona dinamicamente
       field.custom_field_options.forEach(opt => {
         const option = document.createElement("option");
-        option.value = opt.value;
+        option.value = opt.name;
         option.textContent = opt.name;
         select.appendChild(option);
       });
@@ -101,102 +78,81 @@ export async function getEmpreendimentos() {
 }
 
 
-// 🔹 Função para buscar tickets e padronizar os campos
-// export async function getTickets() {
-//   try {
-//     const data = await client.request({
-//       url: `/api/v2/search.json?query=type:ticket ticket_form_id:39804179516187`,
-//       type: "GET",
-//     });
-
-//     // Retorna apenas os campos importantes de cada ticket
-//     return data.results.map((ticket) => {
-//       let custom = {};
-//       for (let fieldId in FIELDS_MAP) {
-//         const field = ticket.fields?.find((f) => f.id == fieldId);
-//         custom[FIELDS_MAP[fieldId]] = field ? field.value : null;
-//       }
-
-//       if (!custom.tipo || !custom.empreendimento || !custom.agendamento || !custom.horario) {
-//         return null; // descarta tickets incompletos
-//       }
-
-//       // padroniza a data/hora como string "YYYY-MM-DD" e "HH:mm"
-//       const padData = custom.agendamento; // assume que já vem nesse formato
-//       const padHora = custom.horario.padStart(5, "0"); // "09:00" em vez de "9:00"
-
-//       return {
-//         ticketId: ticket.id,
-//         tipo: custom.tipo,
-//         empreendimento: custom.empreendimento,
-//         data: padData,
-//         hora: padHora,
-//       };
-//     }).filter(Boolean);
-//   } catch (err) {
-//     console.error("Erro ao buscar tickets:", err);
-//     throw err;
-//   }
-// }
-
-// 🔹 Função para criar ticket usando ZAF client
-// export async function createTicket(payload) {
-//   try {
-//     const response = await client.request({
-//       url: `/api/v2/tickets.json`,
-//       type: "POST",
-//       contentType: "application/json",
-//       data: JSON.stringify(payload),
-//     });
-
-//     // Retorna o ticket criado com os campos importantes
-//     const t = response.ticket;
-//     const custom = {};
-//     for (let fieldId in FIELDS_MAP) {
-//       const f = t.fields?.find((f) => f.id == fieldId);
-//       custom[FIELDS_MAP[fieldId]] = f ? f.value : null;
-//     }
-
-//     return {
-//       ticketId: t.id,
-//       tipo: custom.tipo,
-//       empreendimento: custom.empreendimento,
-//       data: custom.agendamento,
-//       hora: custom.horario,
-//     };
-//   } catch (err) {
-//     console.error("Erro ao criar ticket:", err);
-//     throw err;
-//   }
-// }
-
-export async function getDisponibilidades() {
+export async function getDisponibilidades(mesReferencia, novosPayloads = []) {
   try {
-    const data = await client.request({
-      url: `/api/v2/custom_objects/availability/records`,
-      type: "GET",
-    });
+    // 🔹 Extrai ano-mês (YYYY-MM) do primeiro item que o usuário está tentando criar
+    const [ano, mes] = mesReferencia.split("-");
+    const inicioMes = `${ano}-${mes}-01`;
+    const fimMes = `${ano}-${mes.padStart(2, "0")}-31`; // safe para mês fixo
 
-    // transforma registros em objetos simplificados
-    return data.custom_object_records.map((rec) => {
-      const f = rec.custom_object_fields;
+    let url = `/api/v2/custom_objects/availability/records?page[size]=100` +
+              `&filter[fields.data][gte]=${inicioMes}` +
+              `&filter[fields.data][lte]=${fimMes}`;
 
-      if (!f.tipo || !f.empreendimento || !f.data || !f.hora) {
-        return null; // descarta registros incompletos
+    let allRecords = [];
+
+    while (url) {
+      const data = await client.request({ url, type: "GET" });
+
+      // 🔹 Loga a resposta bruta da API
+      console.log("📥 Resposta bruta da API:", data);
+
+      if (data?.custom_object_records?.length) {
+        const mapped = data.custom_object_records.map((rec) => {
+          const f = rec.custom_object_fields;
+          if (!f.tipo || !f.empreendimento || !f.data || !f.hora) return null;
+
+          const padData = f.data.split("T")[0]; // YYYY-MM-DD
+          const padHora = f.hora.padStart(5, "0");
+
+          return {
+            id: rec.id,
+            tipo: f.tipo,
+            empreendimento: f.empreendimento,
+            data: padData,
+            hora: padHora,
+            status: f.status,
+          };
+        }).filter(Boolean);
+
+        allRecords.push(...mapped);
       }
 
-      const padData = f.data.split("T")[0]; // pega só YYYY-MM-DD
-      const padHora = f.hora.padStart(5, "0");
+      // 🔹 Pega próxima página (se houver)
+      url = data.links?.next || null;
+    }
 
-      return {
-        id: rec.id,
-        tipo: f.tipo,
-        empreendimento: f.empreendimento,
-        data: padData,
-        hora: padHora,
-        status: f.status,
-      };
-    }).filter(Boolean);
+    console.log(`📦 Total de disponibilidades carregadas para ${mesReferencia}: ${allRecords.length}`);
+    console.log("📋 Disponibilidades existentes:", allRecords);
+
+    // 🔹 Se recebemos novos payloads, comparar com os existentes
+    if (novosPayloads.length > 0) {
+      const duplicados = [];
+      const novosValidos = [];
+
+      for (let novo of novosPayloads) {
+        const existe = allRecords.some(
+          (d) =>
+            d.tipo === novo.tipo &&
+            d.empreendimento === novo.empreendimento &&
+            d.data === novo.data &&
+            d.hora === novo.hora
+        );
+
+        if (existe) {
+          duplicados.push(novo);
+        } else {
+          novosValidos.push(novo);
+        }
+      }
+
+      console.log("⚠️ Duplicados detectados:", duplicados);
+      console.log("✅ Novos que serão criados:", novosValidos);
+
+      return { existentes: allRecords, duplicados, novosValidos };
+    }
+
+    return allRecords;
 
   } catch (err) {
     console.error("Erro ao buscar disponibilidades:", err);
@@ -204,15 +160,26 @@ export async function getDisponibilidades() {
   }
 }
 
+
+
 export async function fetchDisponibilidades(semanaFinal) {
   try {
     let allRecords = [];
-    let url = `/api/v2/custom_objects/availability/records/search?query=semana_final:${semanaFinal}`;
+    let url = `/api/v2/custom_objects/availability/records/search`;
+    let body = {
+      filter: {
+        "custom_object_fields.semana_final": { "$eq": semanaFinal }
+      }
+    };
 
     while (url) {
-      const data = await client.request({ url, type: "GET" });
+      const data = await client.request({
+        url,
+        type: "POST",
+        data: body
+      });
 
-      if (!data.custom_object_records.length) {
+      if (!data.custom_object_records?.length) {
         console.warn("⚠️ Nenhum registro encontrado nesta página.");
         break;
       }
@@ -220,8 +187,8 @@ export async function fetchDisponibilidades(semanaFinal) {
       const disponibilidades = data.custom_object_records.map(record => {
         const f = record.custom_object_fields;
 
-        // extrai apenas YYYY-MM-DD
-        const datePart = f.data.split("T")[0];
+        // garante apenas AAAA-MM-DD
+        const datePart = f.data?.split("T")[0];
         const startDate = f.hora ? `${datePart}T${f.hora}` : datePart;
 
         return {
@@ -237,18 +204,20 @@ export async function fetchDisponibilidades(semanaFinal) {
             empreendimento: f.empreendimento,
             tipo: f.tipo,
             executivo: f.executivo_nome,
-            agenteId: f.agente_id
+            agenteId: f.agente_id,
+            ticketId: f.ticket_id
           },
         };
       });
 
       allRecords.push(...disponibilidades);
 
-      // paginação por cursor
+      // paginação via cursor (se a API retornar)
       url = data.links?.next || null;
+      // na próxima iteração, não mandamos body de novo no "next"
+      if (url) body = null;
     }
 
-    console.log("✅ Eventos mapeados para o calendário:", allRecords);
     return allRecords;
   } catch (err) {
     console.error("Erro ao buscar disponibilidades:", err);
@@ -256,103 +225,71 @@ export async function fetchDisponibilidades(semanaFinal) {
   }
 }
 
-
-
-
-export async function createDisponibilidade(payload) {
+export async function createDisponibilidades(payloads) {
   try {
-    // calcula semana_final se não estiver no payload
-    let semanaFinal = payload.semana_final;
-    if (!semanaFinal) {
-      semanaFinal = calcularDataFinal(payload.data); // função retorna "YYYY-MM-DD"
-    }
-
-    const response = await client.request({
-      url: `/api/v2/custom_objects/availability/records`,
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({
-        custom_object_record: {
-          custom_object_fields: {
-            data: payload.data,                 // "2025-09-01T00:00:00+00:00"
-            data_final: payload.data_final,     // "2025-09-06T00:00:00+00:00"
-            semana_final: semanaFinal,          // Novo campo
-            hora: payload.hora,                 // "12:00"
-            tipo: payload.tipo,                 // "Vistoria"
-            empreendimento: payload.empreendimento,
-            status: payload.status || "Livre",
-            agente_id: payload.agente_id || null,
-            executivo_nome: payload.executivo_nome || null
-          }
+    // Mapeia todos os payloads garantindo semana_final
+    const items = payloads.map((payload) => {
+      const semanaFinal = payload.semana_final || calcularDataFinal(payload.data);
+      return {
+        custom_object_fields: {
+          data: payload.data,
+          data_final: payload.data_final,
+          semana_final: semanaFinal,
+          hora: payload.hora,
+          tipo: payload.tipo,
+          empreendimento: payload.empreendimento,
+          status: payload.status || "Livre",
+          agente_id: payload.agente_id || null,
+          executivo_nome: payload.executivo_nome || null
         }
-      })
+      };
     });
 
-    return response.custom_object_record;
+    // Divide em chunks de 100 itens
+    const chunkSize = 100;
+    const chunks = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      chunks.push(items.slice(i, i + chunkSize));
+    }
+
+    const allJobs = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      console.log(`🚀 Criando job ${i + 1}/${chunks.length} com ${chunk.length} registros`);
+
+      const response = await client.request({
+        url: `/api/v2/custom_objects/availability/jobs`,
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+          job: {
+            action: "create",
+            items: chunk
+          }
+        })
+      });
+
+      // Garantir que job_status existe
+      const jobStatus = response.job_status;
+      if (!jobStatus?.id) {
+        throw new Error("Não foi possível criar o job: job_status.id não encontrado");
+      }
+
+      console.log(`📌 Job ${i + 1} disparado:`, jobStatus);
+      allJobs.push(jobStatus);
+    }
+
+    return allJobs; // retorna todos os jobs (cada um com id) para polling
   } catch (err) {
-    console.error("Erro ao criar disponibilidade:", err);
+    console.error("Erro ao criar disponibilidades em lote:", err);
     throw err;
   }
 }
 
 
-// 🔹 Função genérica para buscar tickets
-// export async function fetchTickets(startOfWeek, endOfWeek) {
-//   try {
-//     let allTickets = [];
-//     let url = `/api/v2/search.json?query=type:ticket ticket_form_id:34533996322071`;
-
-//     while (url) {
-//       const data = await client.request({ url, type: "GET" });
-
-//       const tickets = data.results.map(ticket => {
-//         // transforma fields em mapa para performance
-//         const fieldsMap = {};
-//         (ticket.fields || []).forEach(f => fieldsMap[f.id] = f.value);
-
-//         let custom = {};
-//         for (let fieldId in FIELDS_MAP) {
-//           custom[FIELDS_MAP[fieldId]] = fieldsMap[fieldId] || null;
-//         }
-
-//         if (!custom.agendamento) return null;
-
-//         // filtra pela semana
-//         if (custom.agendamento < startOfWeek || custom.agendamento > endOfWeek) return null;
-
-//         let startDate = custom.agendamento;
-//         if (custom.horario) startDate = `${startDate}T${custom.horario}`;
-
-//         return {
-//           id: ticket.id,
-//           title: `${VALUE_LABEL_MAP[custom.tipo] || custom.tipo} - ${VALUE_LABEL_MAP[custom.empreendimento] || custom.empreendimento}`,
-//           start: startDate,
-//           borderColor: getGroupColor(custom.status),
-//           backgroundColor: getGroupColor(custom.status),
-//           color: "#fff",
-//           classNames: [custom.tipo, custom.empreendimento],
-//           extendedProps: {
-//             ticketId: ticket.id,
-//             status: custom.status,
-//             empreendimento: custom.empreendimento,
-//             tipo: custom.tipo,
-//           },
-//         };
-//       }).filter(Boolean);
-
-//       allTickets.push(...tickets);
-//       url = data.next_page; // próxima página
-//     }
-
-//     return allTickets;
-//   } catch (error) {
-//     console.error("Erro ao buscar tickets:", error);
-//     throw error;
-//   }
-// }
-
-
  function getGroupColor(status) {
-    if (status === "vita_agenda_status_agendado") return "#FF6B6B";
-    if (status === "vita_agenda_status_livre") return "#4ECDC4";
+    if (status === "Agendado") return "#FF6B6B";
+    if (status === "Pendente") return "#ffba6bff";
+    if (status === "Livre") return "#4ECDC4";
   }

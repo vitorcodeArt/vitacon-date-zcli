@@ -1,15 +1,30 @@
+@font-face {
+  font-family: "DRG";
+  src: url(./fonts/DRG.TTF);
+}
+
+@font-face {
+  font-family: "Hearts";
+  src: url(./fonts/HEARTS\ GARDEN\ PERSONAL\ USE.ttf);
+}
+
 :root {
   --before-bg: #4ecdc4;
   --after-color: #4ecdc4;
-  --background-soft: #feefce;
+  --background-soft: #ffffff;
 }
 
 * {
   box-sizing: border-box;
 }
 
+.app-title {
+  font-size: 1.5rem;
+  font-family: Hearts;
+}
+
 .line_etapas_check {
-  transition: height 0.3s ease;
+  transition: width 0.3s ease;
 }
 
 .bi-app::before {
@@ -104,7 +119,7 @@
 }
 
 #miniCalendar .fc-toolbar-title {
-  font-size: 1rem !important;
+  font-size: .7rem !important;
   font-weight: bold;
 }
 
@@ -134,7 +149,8 @@
   border-radius: 10px;
   padding: 0.5rem 1.5rem;
   color: #565656;
-  height: 353px;
+  height: 280px;
+  padding-top: .3rem;
 }
 
 #miniCalendar .fc-scroller-liquid-absolute {
@@ -163,12 +179,14 @@
 }
 
 #rangeCalendar .fc-button-primary {
-  background: var(--background-soft) !important;
+  background: #f2bd9c4d !important;
   border: none !important;
   color: #565656 !important;
   border-radius: 22px;
   padding: 0.3rem;
   font-size: 0.9rem;
+  margin-right: .3rem;
+  padding-top: .3rem;
 }
 
 #rangeCalendar .fc-scroller-harness .fc-scroller {
@@ -186,7 +204,7 @@
   box-shadow: 0px 0px 12px 4px rgba(0, 0, 0, 0.47);
   -webkit-box-shadow: 0px 0px 12px 4px rgba(0, 0, 0, 0.47);
   -moz-box-shadow: 0px 0px 12px 4px rgba(0, 0, 0, 0.47);
-  padding: 0px 0px 45px 0px;
+  padding: 1.5rem;
   height: 100%;
 }
 #rangeCalendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-top a {
@@ -202,12 +220,16 @@
   background-color: transparent !important;
 }
 
+#mainCalendar .fc-button-group > .fc-button.fc-button-active, .fc .fc-button-group > .fc-button:active, .fc .fc-button-group > .fc-button:focus, .fc .fc-button-group > .fc-button {
+  z-index: 0 !important;
+}
+
 #rangeCalendar .fc-daygrid-day-bg .fc-highlight {
   z-index: 3;
   border-radius: 10px;
   background: #bbdff7 !important;
-  border: solid #496d8ca1 !important;
-  box-shadow: inset 10px -5px 15px #8db4eb;
+  /* border: solid #496d8ca1 !important; */
+  /* box-shadow: inset 10px -5px 15px #8db4eb; */
 }
 
 #rangeCalendar .fc-daygrid-day-bg .fc-bg-event {
@@ -215,13 +237,13 @@
   color: #fff !important;
   border-radius: 8px !important;
   background: #bbdff7 !important;
-  border: solid #496d8ca1 !important;
-  box-shadow: inset 10px -5px 15px #8db4eb;
+  /* border: solid #496d8ca1 !important; */
+  /* box-shadow: inset 10px -5px 15px #8db4eb; */
   opacity: 1 !important;
 }
 
 #rangeCalendar .fc-toolbar-title {
-  font-size: 1rem !important;
+  font-size: .7rem !important;
   font-weight: bold;
 }
 
@@ -253,7 +275,6 @@
   background: #fff5de;
   border-radius: 10px;
   font-size: 15px;
-  position: absolute;
   top: 10px;
   padding: 11px 20px 0px 23px;
 }
